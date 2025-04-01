@@ -3,21 +3,36 @@ import torch.nn as nn
 import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-from datetime import datetime
+from sklearn.preprocessing import StandardScaler
+import math
 import glob
-import matplotlib.pyplot as plt
+
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, max_len=1000):
+        super().__init__()
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term[:d_model//2])
+        pe = pe.unsqueeze(0)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        return x + self.pe[:, :x.size(1)]
 
 class StockDataset(Dataset):
     def __init__(self, data_dir, start_date, end_date, seq_len):
         self.seq_len = seq_len
         self.data = []
         self.labels = []
+        self.scalers = {}  # Store scalers for each stock
         
-        # 读取所有股票数据
+        # Read and process stock data
         csv_files = glob.glob(f"{data_dir}/*.csv")
         stock_data = []
         
-        # 确保所有日期格式一致
         start_date = pd.to_datetime(start_date)
         end_date = pd.to_datetime(end_date)
         
@@ -25,14 +40,27 @@ class StockDataset(Dataset):
             df = pd.read_csv(file)
             df['timestamp'] = pd.to_datetime(df['timestamp'])
             df = df[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date)]
-            df = df.sort_values('timestamp')  # 确保按时间排序
+            df = df.sort_values('timestamp')
             
-            # 计算log收益率
+            # Calculate returns and additional features
             df['returns'] = np.log(df['close'] / df['close'].shift(1))
+            df['volume_ma5'] = df['volume'].rolling(window=5).mean()
+            df['price_ma5'] = df['close'].rolling(window=5).mean()
+            df['price_ma20'] = df['close'].rolling(window=20).mean()
+            df['volatility'] = df['returns'].rolling(window=20).std()
+            
             df = df.dropna()
+            
+            # Normalize features
+            features = ['returns', 'volume_ma5', 'price_ma5', 'price_ma20', 'volatility']
+            scaler = StandardScaler()
+            df[features] = scaler.fit_transform(df[features])
+            
+            stock_name = file.split('/')[-1].split('.')[0]
+            self.scalers[stock_name] = scaler
             stock_data.append(df)
         
-        # 找到所有股票共同的交易日
+        # Find common trading days
         common_dates = None
         for df in stock_data:
             dates = set(df['timestamp'])
@@ -47,20 +75,18 @@ class StockDataset(Dataset):
         if len(common_dates) < seq_len + 1:
             raise ValueError(f"Not enough common trading days ({len(common_dates)}) for sequence length {seq_len}")
         
-        # 构建训练数据
+        # Build training data
         for t in range(len(common_dates) - seq_len - 1):
             current_dates = common_dates[t:t+seq_len]
             next_date = common_dates[t+seq_len]
             
-            X = np.zeros((len(stock_data), seq_len))
+            X = np.zeros((len(stock_data), seq_len, len(features)))
             y = np.zeros(len(stock_data))
             
             for i, df in enumerate(stock_data):
-                # 获取当前时间窗口的数据
-                window_data = df[df['timestamp'].isin(current_dates)]['returns'].values
-                if len(window_data) == seq_len:  # 确保数据完整
+                window_data = df[df['timestamp'].isin(current_dates)][features].values
+                if len(window_data) == seq_len:
                     X[i] = window_data
-                    # 获取下一天的收益率
                     next_return = df[df['timestamp'] == next_date]['returns'].values
                     if len(next_return) > 0:
                         y[i] = next_return[0]
@@ -74,149 +100,115 @@ class StockDataset(Dataset):
     def __getitem__(self, idx):
         return torch.FloatTensor(self.data[idx]), torch.FloatTensor(self.labels[idx])
 
-class StockTransformer(nn.Module):
-    def __init__(self, seq_len, num_stocks, d_model=64, nhead=8, num_layers=6):
+class MultiHeadAttentionLayer(nn.Module):
+    def __init__(self, d_model, num_heads, dropout=0.1):
         super().__init__()
-        self.embedding = nn.Linear(1, d_model)
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.head_dim = d_model // num_heads
         
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=d_model,
-            nhead=nhead,
-            dim_feedforward=d_model * 4,
-            batch_first=True
+        self.qkv_layer = nn.Linear(d_model, 3 * d_model)
+        self.output_layer = nn.Linear(d_model, d_model)
+        self.dropout = nn.Dropout(dropout)
+        
+    def forward(self, x, mask=None):
+        batch_size, seq_len, d_model = x.shape
+        qkv = self.qkv_layer(x)
+        qkv = qkv.reshape(batch_size, seq_len, self.num_heads, 3 * self.head_dim)
+        qkv = qkv.permute(0, 2, 1, 3)
+        q, k, v = qkv.chunk(3, dim=-1)
+        
+        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        
+        attention = torch.softmax(scores, dim=-1)
+        attention = self.dropout(attention)
+        
+        output = torch.matmul(attention, v)
+        output = output.permute(0, 2, 1, 3).contiguous()
+        output = output.reshape(batch_size, seq_len, d_model)
+        output = self.output_layer(output)
+        
+        return output
+
+class TransformerBlock(nn.Module):
+    def __init__(self, d_model, num_heads, d_ff, dropout=0.1):
+        super().__init__()
+        self.attention = MultiHeadAttentionLayer(d_model, num_heads, dropout)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        
+        self.feed_forward = nn.Sequential(
+            nn.Linear(d_model, d_ff),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(d_ff, d_model)
         )
-        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.fc = nn.Linear(d_model * seq_len, 1)
         
-    def forward(self, x):
-        # x shape: [batch_size, num_stocks, seq_len]
-        batch_size, num_stocks, seq_len = x.shape
+        self.dropout = nn.Dropout(dropout)
         
-        # Reshape for embedding
-        x = x.view(-1, seq_len, 1)
-        x = self.embedding(x)
-        
-        # Apply transformer
-        x = self.transformer(x)
-        
-        # Reshape and predict
-        x = x.reshape(batch_size, num_stocks, -1)
-        return self.fc(x).squeeze(-1)
+    def forward(self, x, mask=None):
+        attention_output = self.attention(x, mask)
+        x = self.norm1(x + self.dropout(attention_output))
+        ff_output = self.feed_forward(x)
+        x = self.norm2(x + self.dropout(ff_output))
+        return x
 
-def train_model(model, train_loader, val_loader, epochs=100, lr=0.001, device='cuda'):
-    model = model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    criterion = nn.MSELoss()
-    
-    print(f"Training on {device}")
-    
-    for epoch in range(epochs):
-        model.train()
-        train_loss = 0
-        for batch_x, batch_y in train_loader:
-            batch_x = batch_x.to(device)
-            batch_y = batch_y.to(device)
-            
-            optimizer.zero_grad()
-            pred = model(batch_x)
-            loss = criterion(pred, batch_y)
-            loss.backward()
-            optimizer.step()
-            train_loss += loss.item()
-            
-        model.eval()
-        val_loss = 0
-        with torch.no_grad():
-            for batch_x, batch_y in val_loader:
-                batch_x = batch_x.to(device)
-                batch_y = batch_y.to(device)
+class EnhancedStockTransformer(nn.Module):
+    def __init__(self, seq_len, num_stocks, num_features=5, d_model=128, num_heads=8, 
+                 num_layers=6, d_ff=512, dropout=0.1):
+        super().__init__()
+        
+        self.feature_embedding = nn.Linear(num_features, d_model)
+        self.positional_encoding = PositionalEncoding(d_model, seq_len)
+        
+        self.transformer_blocks = nn.ModuleList([
+            TransformerBlock(d_model, num_heads, d_ff, dropout)
+            for _ in range(num_layers)
+        ])
+        
+        self.dropout = nn.Dropout(dropout)
+        self.output_layer = nn.Sequential(
+            nn.Linear(d_model * seq_len, d_model),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(d_model, 1)
+        )
+        
+        # Initialize parameters
+        self.apply(self._init_weights)
+        
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            nn.init.xavier_uniform_(module.weight)
+            if module.bias is not None:
+                nn.init.zeros_(module.bias)
                 
-                pred = model(batch_x)
-                loss = criterion(pred, batch_y)
-                val_loss += loss.item()
+    def forward(self, x):
+        # x shape: [batch_size, num_stocks, seq_len, num_features]
+        batch_size, num_stocks, seq_len, num_features = x.shape
         
-        if (epoch + 1) % 10 == 0:  # Print every 10 epochs
-            print(f'Epoch {epoch + 1}, Train Loss: {train_loss/len(train_loader):.6f}, '
-                  f'Val Loss: {val_loss/len(val_loader):.6f}')
-
-def plot_predictions(model, test_loader, stock_names, device='cuda'):
-    model.eval()
-    predictions = []
-    actuals = []
-    
-    with torch.no_grad():
-        for batch_x, batch_y in test_loader:
-            batch_x = batch_x.to(device)
-            pred = model(batch_x)
-            predictions.append(pred.cpu().numpy())
-            actuals.append(batch_y.numpy())
-    
-    predictions = np.concatenate(predictions, axis=0)
-    actuals = np.concatenate(actuals, axis=0)
-    
-    # 为每支股票创建单独的对比图
-    n_stocks = len(stock_names)
-    fig, axes = plt.subplots(n_stocks, 1, figsize=(15, 5*n_stocks))
-    for i, (ax, stock_name) in enumerate(zip(axes, stock_names)):
-        ax.plot(predictions[:, i], label='Predicted', color='blue', alpha=0.7)
-        ax.plot(actuals[:, i], label='Actual', color='red', alpha=0.7)
-        ax.set_title(f'{stock_name} Return Rate Comparison')
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Return Rate')
-        ax.legend()
-        ax.grid(True)
-    plt.tight_layout()
-    plt.savefig('individual_stock_comparisons.png')
-    plt.close()
-    
-    # 创建所有股票实际收益率的对比图
-    plt.figure(figsize=(15, 8))
-    for i, stock_name in enumerate(stock_names):
-        plt.plot(actuals[:, i], label=stock_name)
-    plt.title('Actual Return Rates Comparison')
-    plt.xlabel('Time')
-    plt.ylabel('Return Rate')
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig('actual_returns_comparison.png')
-    plt.close()
-    
-    # 创建所有股票预测收益率的对比图
-    plt.figure(figsize=(15, 8))
-    for i, stock_name in enumerate(stock_names):
-        plt.plot(predictions[:, i], label=stock_name)
-    plt.title('Predicted Return Rates Comparison')
-    plt.xlabel('Time')
-    plt.ylabel('Return Rate')
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig('predicted_returns_comparison.png')
-    plt.close()
-    
-    # 计算并打印每支股票的预测准确度指标
-    print("\nPrediction Performance Metrics:")
-    for i, stock_name in enumerate(stock_names):
-        mse = np.mean((predictions[:, i] - actuals[:, i])**2)
-        mae = np.mean(np.abs(predictions[:, i] - actuals[:, i]))
-        correlation = np.corrcoef(predictions[:, i], actuals[:, i])[0, 1]
-        print(f"\n{stock_name}:")
-        print(f"MSE: {mse:.6f}")
-        print(f"MAE: {mae:.6f}")
-        print(f"Correlation: {correlation:.6f}")
-
-    
-    predictions = np.concatenate(predictions, axis=0)
-    actuals = np.concatenate(actuals, axis=0)
-    
-    plt.figure(figsize=(15, 10))
-    for i in range(len(stock_names)):
-        plt.plot(predictions[:, i], label=f'{stock_names[i]} (pred)')
-        plt.plot(actuals[:, i], label=f'{stock_names[i]} (actual)')
-    
-    plt.legend()
-    plt.title('Predicted vs Actual Returns')
-    plt.xlabel('Time')
-    plt.ylabel('Return')
-    plt.show()
+        # Process each stock separately
+        outputs = []
+        for i in range(num_stocks):
+            stock_data = x[:, i]  # [batch_size, seq_len, num_features]
+            
+            # Embed features
+            embedded = self.feature_embedding(stock_data)
+            
+            # Add positional encoding
+            encoded = self.positional_encoding(embedded)
+            encoded = self.dropout(encoded)
+            
+            # Apply transformer blocks
+            for transformer_block in self.transformer_blocks:
+                encoded = transformer_block(encoded)
+            
+            # Reshape and predict
+            flattened = encoded.reshape(batch_size, -1)
+            output = self.output_layer(flattened)
+            outputs.append(output)
+        
+        # Combine predictions for all stocks
+        return torch.cat(outputs, dim=1)  # [batch_size, num_stocks]

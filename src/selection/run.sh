@@ -3,12 +3,12 @@
 # Default parameters
 DATA_DIR="/home/tourist/neu/QuantitativeTrading/data/mockdata/stocks"
 TRAIN_START="2020-02-01"
-TRAIN_END="2020-04-30"
-TEST_START="2020-05-01"
-TEST_END="2021-05-30"
+TRAIN_END="2020-9-30"
+TEST_START="2020-10-01"
+TEST_END="2020-12-30"
 SEQ_LEN=20
 BATCH_SIZE=32
-EPOCHS=500
+EPOCHS=1000
 LEARNING_RATE=0.001
 
 # Create data directory if it doesn't exist
