@@ -3,7 +3,7 @@
 # Default parameters
 DATA_DIR="/home/tourist/neu/QuantitativeTrading/data/mockdata/stocks"
 TRAIN_START="2020-02-01"
-TRAIN_END="2021-02-30"
+TRAIN_END="2021-02-28"
 TEST_START="2021-03-01"
 TEST_END="2021-07-01"
 SEQ_LEN=20
