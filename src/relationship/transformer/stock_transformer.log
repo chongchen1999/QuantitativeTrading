@@ -1,0 +1,479 @@
+2025-03-31 20:34:22,738 - __main__ - INFO - 使用设备: cuda
+2025-03-31 20:34:22,739 - __main__ - INFO - 加载股票数据...
+2025-03-31 20:34:22,780 - __main__ - INFO - 加载了 7 支股票的数据
+2025-03-31 20:34:22,781 - __main__ - INFO - 计算log returns...
+2025-03-31 20:34:22,790 - __main__ - INFO - 对齐时间戳...
+2025-03-31 20:34:22,797 - __main__ - INFO - 准备训练数据...
+2025-03-31 20:34:22,799 - __main__ - INFO - 准备了 25 个训练样本，7 支股票
+2025-03-31 20:34:26,679 - __main__ - INFO - 开始训练模型...
+2025-03-31 20:36:55,733 - __main__ - INFO - 使用设备: cuda
+2025-03-31 20:36:55,734 - __main__ - INFO - PyTorch版本: 2.5.1+cu118
+2025-03-31 20:36:55,735 - __main__ - INFO - 加载股票数据...
+2025-03-31 20:36:55,760 - __main__ - INFO - 加载了 7 支股票的数据
+2025-03-31 20:36:55,760 - __main__ - INFO - 计算log returns...
+2025-03-31 20:36:55,767 - __main__ - INFO - 对齐时间戳...
+2025-03-31 20:36:55,774 - __main__ - INFO - 准备训练数据...
+2025-03-31 20:36:55,775 - __main__ - INFO - 准备了 25 个训练样本，7 支股票
+2025-03-31 20:36:55,776 - __main__ - WARNING - 调整批次大小: 32 -> 20
+2025-03-31 20:36:57,189 - __main__ - INFO - 开始训练模型...
+2025-03-31 20:36:57,189 - __main__ - INFO - 模型总参数数量: 104,305
+2025-03-31 20:36:58,064 - __main__ - INFO - Epoch 1/1000 - Train Loss: 0.567643, Val Loss: 0.342384
+2025-03-31 20:36:58,072 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.342384
+2025-03-31 20:36:58,344 - __main__ - INFO - Epoch 2/1000 - Train Loss: 0.395494, Val Loss: 0.260927
+2025-03-31 20:36:58,361 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.260927
+2025-03-31 20:36:58,729 - __main__ - INFO - Epoch 3/1000 - Train Loss: 0.289190, Val Loss: 0.207954
+2025-03-31 20:36:58,735 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.207954
+2025-03-31 20:36:58,954 - __main__ - INFO - Epoch 4/1000 - Train Loss: 0.204315, Val Loss: 0.172322
+2025-03-31 20:36:58,960 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.172322
+2025-03-31 20:36:59,191 - __main__ - INFO - Epoch 5/1000 - Train Loss: 0.152968, Val Loss: 0.150144
+2025-03-31 20:36:59,198 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.150144
+2025-03-31 20:36:59,467 - __main__ - INFO - Epoch 6/1000 - Train Loss: 0.123162, Val Loss: 0.136105
+2025-03-31 20:36:59,474 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.136105
+2025-03-31 20:36:59,735 - __main__ - INFO - Epoch 7/1000 - Train Loss: 0.104041, Val Loss: 0.127458
+2025-03-31 20:36:59,742 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.127458
+2025-03-31 20:37:00,013 - __main__ - INFO - Epoch 8/1000 - Train Loss: 0.089895, Val Loss: 0.122383
+2025-03-31 20:37:00,023 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.122383
+2025-03-31 20:37:00,359 - __main__ - INFO - Epoch 9/1000 - Train Loss: 0.077155, Val Loss: 0.120189
+2025-03-31 20:37:00,368 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.120189
+2025-03-31 20:37:00,709 - __main__ - INFO - Epoch 10/1000 - Train Loss: 0.069489, Val Loss: 0.120272
+2025-03-31 20:37:00,997 - __main__ - INFO - Epoch 11/1000 - Train Loss: 0.063650, Val Loss: 0.121374
+2025-03-31 20:37:01,229 - __main__ - INFO - Epoch 12/1000 - Train Loss: 0.061121, Val Loss: 0.123003
+2025-03-31 20:37:01,506 - __main__ - INFO - Epoch 13/1000 - Train Loss: 0.057806, Val Loss: 0.125109
+2025-03-31 20:37:01,808 - __main__ - INFO - Epoch 14/1000 - Train Loss: 0.057158, Val Loss: 0.127560
+2025-03-31 20:37:02,153 - __main__ - INFO - Epoch 15/1000 - Train Loss: 0.051292, Val Loss: 0.129995
+2025-03-31 20:37:02,521 - __main__ - INFO - Epoch 16/1000 - Train Loss: 0.053731, Val Loss: 0.132527
+2025-03-31 20:37:02,974 - __main__ - INFO - Epoch 17/1000 - Train Loss: 0.054175, Val Loss: 0.134933
+2025-03-31 20:37:03,355 - __main__ - INFO - Epoch 18/1000 - Train Loss: 0.051487, Val Loss: 0.137153
+2025-03-31 20:37:03,743 - __main__ - INFO - Epoch 19/1000 - Train Loss: 0.049802, Val Loss: 0.139206
+2025-03-31 20:37:03,743 - __main__ - INFO - 连续 10 个epoch没有改善，提前停止训练
+2025-03-31 20:37:04,361 - __main__ - INFO - 成功加载最佳模型
+2025-03-31 20:37:04,699 - __main__ - INFO - 模型训练和评估完成！
+2025-03-31 20:37:04,700 - __main__ - INFO - 结果保存在: ./output
+2025-03-31 20:38:22,266 - __main__ - INFO - 使用设备: cuda
+2025-03-31 20:38:22,266 - __main__ - INFO - PyTorch版本: 2.5.1+cu118
+2025-03-31 20:38:22,267 - __main__ - INFO - 加载股票数据...
+2025-03-31 20:38:22,291 - __main__ - INFO - 加载了 7 支股票的数据
+2025-03-31 20:38:22,291 - __main__ - INFO - 计算log returns...
+2025-03-31 20:38:22,299 - __main__ - INFO - 对齐时间戳...
+2025-03-31 20:38:22,307 - __main__ - INFO - 准备训练数据...
+2025-03-31 20:38:22,309 - __main__ - INFO - 准备了 25 个训练样本，7 支股票
+2025-03-31 20:38:22,310 - __main__ - WARNING - 调整批次大小: 32 -> 20
+2025-03-31 20:38:23,752 - __main__ - INFO - 开始训练模型...
+2025-03-31 20:38:23,752 - __main__ - INFO - 模型总参数数量: 104,305
+2025-03-31 20:38:24,552 - __main__ - INFO - Epoch 1/1000 - Train Loss: 0.667051, Val Loss: 0.334658
+2025-03-31 20:38:24,560 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.334658
+2025-03-31 20:38:24,846 - __main__ - INFO - Epoch 2/1000 - Train Loss: 0.457554, Val Loss: 0.249501
+2025-03-31 20:38:24,855 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.249501
+2025-03-31 20:38:25,123 - __main__ - INFO - Epoch 3/1000 - Train Loss: 0.315045, Val Loss: 0.201559
+2025-03-31 20:38:25,131 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.201559
+2025-03-31 20:38:25,436 - __main__ - INFO - Epoch 4/1000 - Train Loss: 0.223034, Val Loss: 0.175358
+2025-03-31 20:38:25,445 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.175358
+2025-03-31 20:38:25,776 - __main__ - INFO - Epoch 5/1000 - Train Loss: 0.175017, Val Loss: 0.160002
+2025-03-31 20:38:25,783 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.160002
+2025-03-31 20:38:26,000 - __main__ - INFO - Epoch 6/1000 - Train Loss: 0.140339, Val Loss: 0.149164
+2025-03-31 20:38:26,006 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.149164
+2025-03-31 20:38:26,237 - __main__ - INFO - Epoch 7/1000 - Train Loss: 0.110936, Val Loss: 0.140327
+2025-03-31 20:38:26,243 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.140327
+2025-03-31 20:38:26,568 - __main__ - INFO - Epoch 8/1000 - Train Loss: 0.099443, Val Loss: 0.133558
+2025-03-31 20:38:26,575 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.133558
+2025-03-31 20:38:26,874 - __main__ - INFO - Epoch 9/1000 - Train Loss: 0.084806, Val Loss: 0.129111
+2025-03-31 20:38:26,880 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.129111
+2025-03-31 20:38:27,195 - __main__ - INFO - Epoch 10/1000 - Train Loss: 0.075264, Val Loss: 0.126877
+2025-03-31 20:38:27,203 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.126877
+2025-03-31 20:38:27,514 - __main__ - INFO - Epoch 11/1000 - Train Loss: 0.068430, Val Loss: 0.126273
+2025-03-31 20:38:27,522 - __main__ - INFO - 保存了新的最佳模型，验证损失: 0.126273
+2025-03-31 20:38:27,812 - __main__ - INFO - Epoch 12/1000 - Train Loss: 0.059694, Val Loss: 0.126690
+2025-03-31 20:38:28,109 - __main__ - INFO - Epoch 13/1000 - Train Loss: 0.055406, Val Loss: 0.127868
+2025-03-31 20:38:28,363 - __main__ - INFO - Epoch 14/1000 - Train Loss: 0.053691, Val Loss: 0.129486
+2025-03-31 20:38:28,713 - __main__ - INFO - Epoch 15/1000 - Train Loss: 0.050525, Val Loss: 0.131458
+2025-03-31 20:38:29,019 - __main__ - INFO - Epoch 16/1000 - Train Loss: 0.050118, Val Loss: 0.133397
+2025-03-31 20:38:29,362 - __main__ - INFO - Epoch 17/1000 - Train Loss: 0.048889, Val Loss: 0.135162
+2025-03-31 20:38:29,736 - __main__ - INFO - Epoch 18/1000 - Train Loss: 0.046873, Val Loss: 0.136712
+2025-03-31 20:38:30,130 - __main__ - INFO - Epoch 19/1000 - Train Loss: 0.048201, Val Loss: 0.138109
+2025-03-31 20:38:30,554 - __main__ - INFO - Epoch 20/1000 - Train Loss: 0.047377, Val Loss: 0.139424
+2025-03-31 20:38:30,910 - __main__ - INFO - Epoch 21/1000 - Train Loss: 0.048503, Val Loss: 0.140729
+2025-03-31 20:38:31,308 - __main__ - INFO - Epoch 22/1000 - Train Loss: 0.048119, Val Loss: 0.141950
+2025-03-31 20:38:31,796 - __main__ - INFO - Epoch 23/1000 - Train Loss: 0.046455, Val Loss: 0.143070
+2025-03-31 20:38:32,173 - __main__ - INFO - Epoch 24/1000 - Train Loss: 0.046030, Val Loss: 0.143975
+2025-03-31 20:38:32,668 - __main__ - INFO - Epoch 25/1000 - Train Loss: 0.047677, Val Loss: 0.144775
+2025-03-31 20:38:33,110 - __main__ - INFO - Epoch 26/1000 - Train Loss: 0.049173, Val Loss: 0.145572
+2025-03-31 20:38:33,475 - __main__ - INFO - Epoch 27/1000 - Train Loss: 0.048928, Val Loss: 0.146201
+2025-03-31 20:38:33,863 - __main__ - INFO - Epoch 28/1000 - Train Loss: 0.044953, Val Loss: 0.146607
+2025-03-31 20:38:34,281 - __main__ - INFO - Epoch 29/1000 - Train Loss: 0.044686, Val Loss: 0.146880
+2025-03-31 20:38:34,739 - __main__ - INFO - Epoch 30/1000 - Train Loss: 0.045513, Val Loss: 0.146972
+2025-03-31 20:38:35,114 - __main__ - INFO - Epoch 31/1000 - Train Loss: 0.044956, Val Loss: 0.146776
+2025-03-31 20:38:35,528 - __main__ - INFO - Epoch 32/1000 - Train Loss: 0.043121, Val Loss: 0.146521
+2025-03-31 20:38:35,919 - __main__ - INFO - Epoch 33/1000 - Train Loss: 0.047110, Val Loss: 0.146447
+2025-03-31 20:38:36,267 - __main__ - INFO - Epoch 34/1000 - Train Loss: 0.042848, Val Loss: 0.146478
+2025-03-31 20:38:36,746 - __main__ - INFO - Epoch 35/1000 - Train Loss: 0.043271, Val Loss: 0.146687
+2025-03-31 20:38:37,176 - __main__ - INFO - Epoch 36/1000 - Train Loss: 0.042852, Val Loss: 0.146897
+2025-03-31 20:38:37,481 - __main__ - INFO - Epoch 37/1000 - Train Loss: 0.043525, Val Loss: 0.147385
+2025-03-31 20:38:37,768 - __main__ - INFO - Epoch 38/1000 - Train Loss: 0.043512, Val Loss: 0.148267
+2025-03-31 20:38:37,991 - __main__ - INFO - Epoch 39/1000 - Train Loss: 0.043253, Val Loss: 0.149439
+2025-03-31 20:38:38,295 - __main__ - INFO - Epoch 40/1000 - Train Loss: 0.041290, Val Loss: 0.150712
+2025-03-31 20:38:38,603 - __main__ - INFO - Epoch 41/1000 - Train Loss: 0.042440, Val Loss: 0.151844
+2025-03-31 20:38:38,923 - __main__ - INFO - Epoch 42/1000 - Train Loss: 0.041316, Val Loss: 0.152586
+2025-03-31 20:38:39,278 - __main__ - INFO - Epoch 43/1000 - Train Loss: 0.040689, Val Loss: 0.152759
+2025-03-31 20:38:39,695 - __main__ - INFO - Epoch 44/1000 - Train Loss: 0.037559, Val Loss: 0.152841
+2025-03-31 20:38:40,182 - __main__ - INFO - Epoch 45/1000 - Train Loss: 0.039740, Val Loss: 0.152698
+2025-03-31 20:38:40,568 - __main__ - INFO - Epoch 46/1000 - Train Loss: 0.040708, Val Loss: 0.152849
+2025-03-31 20:38:40,901 - __main__ - INFO - Epoch 47/1000 - Train Loss: 0.040317, Val Loss: 0.153183
+2025-03-31 20:38:41,308 - __main__ - INFO - Epoch 48/1000 - Train Loss: 0.038976, Val Loss: 0.153785
+2025-03-31 20:38:41,722 - __main__ - INFO - Epoch 49/1000 - Train Loss: 0.037049, Val Loss: 0.154077
+2025-03-31 20:38:42,136 - __main__ - INFO - Epoch 50/1000 - Train Loss: 0.038209, Val Loss: 0.154250
+2025-03-31 20:38:42,588 - __main__ - INFO - Epoch 51/1000 - Train Loss: 0.037065, Val Loss: 0.154673
+2025-03-31 20:38:43,066 - __main__ - INFO - Epoch 52/1000 - Train Loss: 0.033363, Val Loss: 0.154630
+2025-03-31 20:38:43,447 - __main__ - INFO - Epoch 53/1000 - Train Loss: 0.035287, Val Loss: 0.155045
+2025-03-31 20:38:43,823 - __main__ - INFO - Epoch 54/1000 - Train Loss: 0.036201, Val Loss: 0.155110
+2025-03-31 20:38:44,266 - __main__ - INFO - Epoch 55/1000 - Train Loss: 0.034009, Val Loss: 0.155564
+2025-03-31 20:38:44,617 - __main__ - INFO - Epoch 56/1000 - Train Loss: 0.034414, Val Loss: 0.156613
+2025-03-31 20:38:45,001 - __main__ - INFO - Epoch 57/1000 - Train Loss: 0.033602, Val Loss: 0.157467
+2025-03-31 20:38:45,392 - __main__ - INFO - Epoch 58/1000 - Train Loss: 0.033479, Val Loss: 0.158070
+2025-03-31 20:38:45,747 - __main__ - INFO - Epoch 59/1000 - Train Loss: 0.034036, Val Loss: 0.158394
+2025-03-31 20:38:46,156 - __main__ - INFO - Epoch 60/1000 - Train Loss: 0.034671, Val Loss: 0.158461
+2025-03-31 20:38:46,535 - __main__ - INFO - Epoch 61/1000 - Train Loss: 0.032909, Val Loss: 0.159154
+2025-03-31 20:38:46,966 - __main__ - INFO - Epoch 62/1000 - Train Loss: 0.033135, Val Loss: 0.159912
+2025-03-31 20:38:47,517 - __main__ - INFO - Epoch 63/1000 - Train Loss: 0.032686, Val Loss: 0.159281
+2025-03-31 20:38:47,914 - __main__ - INFO - Epoch 64/1000 - Train Loss: 0.032139, Val Loss: 0.158398
+2025-03-31 20:38:48,441 - __main__ - INFO - Epoch 65/1000 - Train Loss: 0.031673, Val Loss: 0.157306
+2025-03-31 20:38:48,887 - __main__ - INFO - Epoch 66/1000 - Train Loss: 0.030712, Val Loss: 0.156646
+2025-03-31 20:38:49,350 - __main__ - INFO - Epoch 67/1000 - Train Loss: 0.033273, Val Loss: 0.156647
+2025-03-31 20:38:49,729 - __main__ - INFO - Epoch 68/1000 - Train Loss: 0.029676, Val Loss: 0.157385
+2025-03-31 20:38:50,121 - __main__ - INFO - Epoch 69/1000 - Train Loss: 0.030941, Val Loss: 0.157926
+2025-03-31 20:38:50,537 - __main__ - INFO - Epoch 70/1000 - Train Loss: 0.031089, Val Loss: 0.157403
+2025-03-31 20:38:51,016 - __main__ - INFO - Epoch 71/1000 - Train Loss: 0.031893, Val Loss: 0.156399
+2025-03-31 20:38:51,541 - __main__ - INFO - Epoch 72/1000 - Train Loss: 0.030596, Val Loss: 0.155154
+2025-03-31 20:38:52,015 - __main__ - INFO - Epoch 73/1000 - Train Loss: 0.031477, Val Loss: 0.153990
+2025-03-31 20:38:52,403 - __main__ - INFO - Epoch 74/1000 - Train Loss: 0.031012, Val Loss: 0.153242
+2025-03-31 20:38:52,846 - __main__ - INFO - Epoch 75/1000 - Train Loss: 0.028774, Val Loss: 0.153223
+2025-03-31 20:38:53,212 - __main__ - INFO - Epoch 76/1000 - Train Loss: 0.031305, Val Loss: 0.152956
+2025-03-31 20:38:53,572 - __main__ - INFO - Epoch 77/1000 - Train Loss: 0.028530, Val Loss: 0.153375
+2025-03-31 20:38:54,062 - __main__ - INFO - Epoch 78/1000 - Train Loss: 0.029785, Val Loss: 0.153348
+2025-03-31 20:38:56,220 - __main__ - INFO - Epoch 79/1000 - Train Loss: 0.030884, Val Loss: 0.152754
+2025-03-31 20:38:56,639 - __main__ - INFO - Epoch 80/1000 - Train Loss: 0.029832, Val Loss: 0.151293
+2025-03-31 20:38:57,041 - __main__ - INFO - Epoch 81/1000 - Train Loss: 0.030469, Val Loss: 0.150648
+2025-03-31 20:38:57,482 - __main__ - INFO - Epoch 82/1000 - Train Loss: 0.031944, Val Loss: 0.150017
+2025-03-31 20:38:57,847 - __main__ - INFO - Epoch 83/1000 - Train Loss: 0.028573, Val Loss: 0.149915
+2025-03-31 20:38:58,349 - __main__ - INFO - Epoch 84/1000 - Train Loss: 0.029525, Val Loss: 0.150449
+2025-03-31 20:38:58,765 - __main__ - INFO - Epoch 85/1000 - Train Loss: 0.031213, Val Loss: 0.151578
+2025-03-31 20:38:59,205 - __main__ - INFO - Epoch 86/1000 - Train Loss: 0.029820, Val Loss: 0.151947
+2025-03-31 20:38:59,670 - __main__ - INFO - Epoch 87/1000 - Train Loss: 0.027241, Val Loss: 0.151242
+2025-03-31 20:39:00,135 - __main__ - INFO - Epoch 88/1000 - Train Loss: 0.029287, Val Loss: 0.150179
+2025-03-31 20:39:00,628 - __main__ - INFO - Epoch 89/1000 - Train Loss: 0.028938, Val Loss: 0.149396
+2025-03-31 20:39:01,050 - __main__ - INFO - Epoch 90/1000 - Train Loss: 0.026659, Val Loss: 0.149693
+2025-03-31 20:39:01,454 - __main__ - INFO - Epoch 91/1000 - Train Loss: 0.027745, Val Loss: 0.150678
+2025-03-31 20:39:01,868 - __main__ - INFO - Epoch 92/1000 - Train Loss: 0.027705, Val Loss: 0.151574
+2025-03-31 20:39:02,416 - __main__ - INFO - Epoch 93/1000 - Train Loss: 0.027406, Val Loss: 0.152022
+2025-03-31 20:39:02,825 - __main__ - INFO - Epoch 94/1000 - Train Loss: 0.026355, Val Loss: 0.152267
+2025-03-31 20:39:03,265 - __main__ - INFO - Epoch 95/1000 - Train Loss: 0.028023, Val Loss: 0.152021
+2025-03-31 20:39:03,624 - __main__ - INFO - Epoch 96/1000 - Train Loss: 0.027466, Val Loss: 0.151823
+2025-03-31 20:39:03,957 - __main__ - INFO - Epoch 97/1000 - Train Loss: 0.027933, Val Loss: 0.151403
+2025-03-31 20:39:04,357 - __main__ - INFO - Epoch 98/1000 - Train Loss: 0.027194, Val Loss: 0.152289
+2025-03-31 20:39:04,788 - __main__ - INFO - Epoch 99/1000 - Train Loss: 0.026564, Val Loss: 0.153633
+2025-03-31 20:39:05,203 - __main__ - INFO - Epoch 100/1000 - Train Loss: 0.026598, Val Loss: 0.154389
+2025-03-31 20:39:05,595 - __main__ - INFO - Epoch 101/1000 - Train Loss: 0.027305, Val Loss: 0.154029
+2025-03-31 20:39:06,018 - __main__ - INFO - Epoch 102/1000 - Train Loss: 0.026701, Val Loss: 0.153705
+2025-03-31 20:39:06,418 - __main__ - INFO - Epoch 103/1000 - Train Loss: 0.028066, Val Loss: 0.152450
+2025-03-31 20:39:06,911 - __main__ - INFO - Epoch 104/1000 - Train Loss: 0.026436, Val Loss: 0.149563
+2025-03-31 20:39:07,338 - __main__ - INFO - Epoch 105/1000 - Train Loss: 0.025787, Val Loss: 0.148283
+2025-03-31 20:39:07,702 - __main__ - INFO - Epoch 106/1000 - Train Loss: 0.027075, Val Loss: 0.148119
+2025-03-31 20:39:08,091 - __main__ - INFO - Epoch 107/1000 - Train Loss: 0.025114, Val Loss: 0.149215
+2025-03-31 20:39:08,462 - __main__ - INFO - Epoch 108/1000 - Train Loss: 0.025805, Val Loss: 0.152886
+2025-03-31 20:39:08,913 - __main__ - INFO - Epoch 109/1000 - Train Loss: 0.024913, Val Loss: 0.156009
+2025-03-31 20:39:09,347 - __main__ - INFO - Epoch 110/1000 - Train Loss: 0.024945, Val Loss: 0.156235
+2025-03-31 20:39:09,739 - __main__ - INFO - Epoch 111/1000 - Train Loss: 0.025013, Val Loss: 0.153495
+2025-03-31 20:39:10,084 - __main__ - INFO - Epoch 112/1000 - Train Loss: 0.025704, Val Loss: 0.150769
+2025-03-31 20:39:10,461 - __main__ - INFO - Epoch 113/1000 - Train Loss: 0.024530, Val Loss: 0.149303
+2025-03-31 20:39:10,904 - __main__ - INFO - Epoch 114/1000 - Train Loss: 0.024475, Val Loss: 0.148752
+2025-03-31 20:39:11,377 - __main__ - INFO - Epoch 115/1000 - Train Loss: 0.026605, Val Loss: 0.149409
+2025-03-31 20:39:11,759 - __main__ - INFO - Epoch 116/1000 - Train Loss: 0.025834, Val Loss: 0.150584
+2025-03-31 20:39:12,200 - __main__ - INFO - Epoch 117/1000 - Train Loss: 0.025304, Val Loss: 0.153231
+2025-03-31 20:39:12,688 - __main__ - INFO - Epoch 118/1000 - Train Loss: 0.026431, Val Loss: 0.153416
+2025-03-31 20:39:13,050 - __main__ - INFO - Epoch 119/1000 - Train Loss: 0.026284, Val Loss: 0.154407
+2025-03-31 20:39:13,495 - __main__ - INFO - Epoch 120/1000 - Train Loss: 0.023600, Val Loss: 0.154687
+2025-03-31 20:39:13,873 - __main__ - INFO - Epoch 121/1000 - Train Loss: 0.024908, Val Loss: 0.154244
+2025-03-31 20:39:14,251 - __main__ - INFO - Epoch 122/1000 - Train Loss: 0.024576, Val Loss: 0.154044
+2025-03-31 20:39:14,636 - __main__ - INFO - Epoch 123/1000 - Train Loss: 0.024489, Val Loss: 0.155024
+2025-03-31 20:39:15,012 - __main__ - INFO - Epoch 124/1000 - Train Loss: 0.022682, Val Loss: 0.156908
+2025-03-31 20:39:15,400 - __main__ - INFO - Epoch 125/1000 - Train Loss: 0.022619, Val Loss: 0.159560
+2025-03-31 20:39:15,923 - __main__ - INFO - Epoch 126/1000 - Train Loss: 0.022775, Val Loss: 0.160432
+2025-03-31 20:39:16,254 - __main__ - INFO - Epoch 127/1000 - Train Loss: 0.023709, Val Loss: 0.160096
+2025-03-31 20:39:16,645 - __main__ - INFO - Epoch 128/1000 - Train Loss: 0.024159, Val Loss: 0.159150
+2025-03-31 20:39:16,971 - __main__ - INFO - Epoch 129/1000 - Train Loss: 0.023804, Val Loss: 0.159820
+2025-03-31 20:39:17,403 - __main__ - INFO - Epoch 130/1000 - Train Loss: 0.024482, Val Loss: 0.159246
+2025-03-31 20:39:17,800 - __main__ - INFO - Epoch 131/1000 - Train Loss: 0.023384, Val Loss: 0.155040
+2025-03-31 20:39:18,216 - __main__ - INFO - Epoch 132/1000 - Train Loss: 0.023614, Val Loss: 0.151229
+2025-03-31 20:39:18,627 - __main__ - INFO - Epoch 133/1000 - Train Loss: 0.022968, Val Loss: 0.149907
+2025-03-31 20:39:19,130 - __main__ - INFO - Epoch 134/1000 - Train Loss: 0.023177, Val Loss: 0.151706
+2025-03-31 20:39:19,510 - __main__ - INFO - Epoch 135/1000 - Train Loss: 0.023147, Val Loss: 0.153985
+2025-03-31 20:39:19,959 - __main__ - INFO - Epoch 136/1000 - Train Loss: 0.022659, Val Loss: 0.155742
+2025-03-31 20:39:20,403 - __main__ - INFO - Epoch 137/1000 - Train Loss: 0.022852, Val Loss: 0.155088
+2025-03-31 20:39:20,819 - __main__ - INFO - Epoch 138/1000 - Train Loss: 0.022436, Val Loss: 0.152481
+2025-03-31 20:39:21,204 - __main__ - INFO - Epoch 139/1000 - Train Loss: 0.023718, Val Loss: 0.147225
+2025-03-31 20:39:21,557 - __main__ - INFO - Epoch 140/1000 - Train Loss: 0.022472, Val Loss: 0.143030
+2025-03-31 20:39:21,934 - __main__ - INFO - Epoch 141/1000 - Train Loss: 0.022534, Val Loss: 0.141756
+2025-03-31 20:39:22,364 - __main__ - INFO - Epoch 142/1000 - Train Loss: 0.023865, Val Loss: 0.144279
+2025-03-31 20:39:22,728 - __main__ - INFO - Epoch 143/1000 - Train Loss: 0.023427, Val Loss: 0.147802
+2025-03-31 20:39:23,149 - __main__ - INFO - Epoch 144/1000 - Train Loss: 0.022871, Val Loss: 0.151370
+2025-03-31 20:39:23,578 - __main__ - INFO - Epoch 145/1000 - Train Loss: 0.022273, Val Loss: 0.152908
+2025-03-31 20:39:24,101 - __main__ - INFO - Epoch 146/1000 - Train Loss: 0.022566, Val Loss: 0.150457
+2025-03-31 20:39:24,629 - __main__ - INFO - Epoch 147/1000 - Train Loss: 0.023628, Val Loss: 0.149350
+2025-03-31 20:39:25,103 - __main__ - INFO - Epoch 148/1000 - Train Loss: 0.021788, Val Loss: 0.148929
+2025-03-31 20:39:25,565 - __main__ - INFO - Epoch 149/1000 - Train Loss: 0.022726, Val Loss: 0.149176
+2025-03-31 20:39:26,008 - __main__ - INFO - Epoch 150/1000 - Train Loss: 0.022580, Val Loss: 0.150201
+2025-03-31 20:39:26,354 - __main__ - INFO - Epoch 151/1000 - Train Loss: 0.022704, Val Loss: 0.152549
+2025-03-31 20:39:26,790 - __main__ - INFO - Epoch 152/1000 - Train Loss: 0.022099, Val Loss: 0.156319
+2025-03-31 20:39:27,157 - __main__ - INFO - Epoch 153/1000 - Train Loss: 0.023079, Val Loss: 0.156172
+2025-03-31 20:39:27,537 - __main__ - INFO - Epoch 154/1000 - Train Loss: 0.022657, Val Loss: 0.155879
+2025-03-31 20:39:27,947 - __main__ - INFO - Epoch 155/1000 - Train Loss: 0.022654, Val Loss: 0.156871
+2025-03-31 20:39:30,064 - __main__ - INFO - Epoch 156/1000 - Train Loss: 0.021253, Val Loss: 0.159071
+2025-03-31 20:39:30,554 - __main__ - INFO - Epoch 157/1000 - Train Loss: 0.022888, Val Loss: 0.160208
+2025-03-31 20:39:30,969 - __main__ - INFO - Epoch 158/1000 - Train Loss: 0.021755, Val Loss: 0.161272
+2025-03-31 20:39:31,370 - __main__ - INFO - Epoch 159/1000 - Train Loss: 0.021346, Val Loss: 0.159260
+2025-03-31 20:39:31,694 - __main__ - INFO - Epoch 160/1000 - Train Loss: 0.021332, Val Loss: 0.152918
+2025-03-31 20:39:32,139 - __main__ - INFO - Epoch 161/1000 - Train Loss: 0.020589, Val Loss: 0.148374
+2025-03-31 20:39:32,571 - __main__ - INFO - Epoch 162/1000 - Train Loss: 0.021264, Val Loss: 0.145842
+2025-03-31 20:39:32,983 - __main__ - INFO - Epoch 163/1000 - Train Loss: 0.021805, Val Loss: 0.148019
+2025-03-31 20:39:33,450 - __main__ - INFO - Epoch 164/1000 - Train Loss: 0.021317, Val Loss: 0.153052
+2025-03-31 20:39:33,832 - __main__ - INFO - Epoch 165/1000 - Train Loss: 0.021503, Val Loss: 0.157612
+2025-03-31 20:39:34,234 - __main__ - INFO - Epoch 166/1000 - Train Loss: 0.021139, Val Loss: 0.158327
+2025-03-31 20:39:34,728 - __main__ - INFO - Epoch 167/1000 - Train Loss: 0.019494, Val Loss: 0.156814
+2025-03-31 20:39:35,161 - __main__ - INFO - Epoch 168/1000 - Train Loss: 0.020957, Val Loss: 0.154244
+2025-03-31 20:39:35,560 - __main__ - INFO - Epoch 169/1000 - Train Loss: 0.019760, Val Loss: 0.148490
+2025-03-31 20:39:36,038 - __main__ - INFO - Epoch 170/1000 - Train Loss: 0.019045, Val Loss: 0.144369
+2025-03-31 20:39:36,395 - __main__ - INFO - Epoch 171/1000 - Train Loss: 0.020747, Val Loss: 0.143088
+2025-03-31 20:39:36,768 - __main__ - INFO - Epoch 172/1000 - Train Loss: 0.020449, Val Loss: 0.144183
+2025-03-31 20:39:37,211 - __main__ - INFO - Epoch 173/1000 - Train Loss: 0.019674, Val Loss: 0.146085
+2025-03-31 20:39:37,574 - __main__ - INFO - Epoch 174/1000 - Train Loss: 0.019765, Val Loss: 0.146789
+2025-03-31 20:39:37,937 - __main__ - INFO - Epoch 175/1000 - Train Loss: 0.019910, Val Loss: 0.147166
+2025-03-31 20:39:38,325 - __main__ - INFO - Epoch 176/1000 - Train Loss: 0.021726, Val Loss: 0.147294
+2025-03-31 20:39:38,829 - __main__ - INFO - Epoch 177/1000 - Train Loss: 0.019780, Val Loss: 0.147497
+2025-03-31 20:39:39,433 - __main__ - INFO - Epoch 178/1000 - Train Loss: 0.021890, Val Loss: 0.146355
+2025-03-31 20:39:39,836 - __main__ - INFO - Epoch 179/1000 - Train Loss: 0.019166, Val Loss: 0.143204
+2025-03-31 20:39:40,211 - __main__ - INFO - Epoch 180/1000 - Train Loss: 0.019120, Val Loss: 0.141590
+2025-03-31 20:39:40,567 - __main__ - INFO - Epoch 181/1000 - Train Loss: 0.019137, Val Loss: 0.143844
+2025-03-31 20:39:40,992 - __main__ - INFO - Epoch 182/1000 - Train Loss: 0.018824, Val Loss: 0.149592
+2025-03-31 20:39:41,439 - __main__ - INFO - Epoch 183/1000 - Train Loss: 0.018895, Val Loss: 0.154935
+2025-03-31 20:39:41,804 - __main__ - INFO - Epoch 184/1000 - Train Loss: 0.017869, Val Loss: 0.157487
+2025-03-31 20:39:42,213 - __main__ - INFO - Epoch 185/1000 - Train Loss: 0.018127, Val Loss: 0.157315
+2025-03-31 20:39:42,657 - __main__ - INFO - Epoch 186/1000 - Train Loss: 0.019235, Val Loss: 0.158318
+2025-03-31 20:39:43,108 - __main__ - INFO - Epoch 187/1000 - Train Loss: 0.017578, Val Loss: 0.157587
+2025-03-31 20:39:43,645 - __main__ - INFO - Epoch 188/1000 - Train Loss: 0.018773, Val Loss: 0.157629
+2025-03-31 20:39:43,959 - __main__ - INFO - Epoch 189/1000 - Train Loss: 0.019358, Val Loss: 0.158497
+2025-03-31 20:39:44,310 - __main__ - INFO - Epoch 190/1000 - Train Loss: 0.018070, Val Loss: 0.156021
+2025-03-31 20:39:44,809 - __main__ - INFO - Epoch 191/1000 - Train Loss: 0.017852, Val Loss: 0.153836
+2025-03-31 20:39:45,143 - __main__ - INFO - Epoch 192/1000 - Train Loss: 0.016928, Val Loss: 0.150613
+2025-03-31 20:39:45,606 - __main__ - INFO - Epoch 193/1000 - Train Loss: 0.017321, Val Loss: 0.148864
+2025-03-31 20:39:46,236 - __main__ - INFO - Epoch 194/1000 - Train Loss: 0.016345, Val Loss: 0.148184
+2025-03-31 20:39:46,644 - __main__ - INFO - Epoch 195/1000 - Train Loss: 0.016752, Val Loss: 0.147317
+2025-03-31 20:39:47,024 - __main__ - INFO - Epoch 196/1000 - Train Loss: 0.016603, Val Loss: 0.145170
+2025-03-31 20:39:47,472 - __main__ - INFO - Epoch 197/1000 - Train Loss: 0.016851, Val Loss: 0.144224
+2025-03-31 20:39:47,996 - __main__ - INFO - Epoch 198/1000 - Train Loss: 0.016869, Val Loss: 0.147442
+2025-03-31 20:39:48,367 - __main__ - INFO - Epoch 199/1000 - Train Loss: 0.015846, Val Loss: 0.153247
+2025-03-31 20:39:48,740 - __main__ - INFO - Epoch 200/1000 - Train Loss: 0.016222, Val Loss: 0.158158
+2025-03-31 20:39:49,116 - __main__ - INFO - Epoch 201/1000 - Train Loss: 0.016400, Val Loss: 0.160907
+2025-03-31 20:39:49,650 - __main__ - INFO - Epoch 202/1000 - Train Loss: 0.016408, Val Loss: 0.162237
+2025-03-31 20:39:50,054 - __main__ - INFO - Epoch 203/1000 - Train Loss: 0.016459, Val Loss: 0.160525
+2025-03-31 20:39:50,511 - __main__ - INFO - Epoch 204/1000 - Train Loss: 0.017100, Val Loss: 0.162607
+2025-03-31 20:39:50,878 - __main__ - INFO - Epoch 205/1000 - Train Loss: 0.016818, Val Loss: 0.166154
+2025-03-31 20:39:51,323 - __main__ - INFO - Epoch 206/1000 - Train Loss: 0.015775, Val Loss: 0.167151
+2025-03-31 20:39:51,819 - __main__ - INFO - Epoch 207/1000 - Train Loss: 0.016536, Val Loss: 0.159876
+2025-03-31 20:39:52,186 - __main__ - INFO - Epoch 208/1000 - Train Loss: 0.014959, Val Loss: 0.153613
+2025-03-31 20:39:52,567 - __main__ - INFO - Epoch 209/1000 - Train Loss: 0.014969, Val Loss: 0.149011
+2025-03-31 20:39:52,916 - __main__ - INFO - Epoch 210/1000 - Train Loss: 0.015159, Val Loss: 0.148865
+2025-03-31 20:39:53,288 - __main__ - INFO - Epoch 211/1000 - Train Loss: 0.016249, Val Loss: 0.149171
+2025-03-31 20:39:53,645 - __main__ - INFO - Epoch 212/1000 - Train Loss: 0.014696, Val Loss: 0.151015
+2025-03-31 20:39:54,007 - __main__ - INFO - Epoch 213/1000 - Train Loss: 0.014420, Val Loss: 0.154390
+2025-03-31 20:39:54,469 - __main__ - INFO - Epoch 214/1000 - Train Loss: 0.016149, Val Loss: 0.153929
+2025-03-31 20:39:54,892 - __main__ - INFO - Epoch 215/1000 - Train Loss: 0.015329, Val Loss: 0.151135
+2025-03-31 20:39:55,335 - __main__ - INFO - Epoch 216/1000 - Train Loss: 0.014067, Val Loss: 0.150475
+2025-03-31 20:39:55,656 - __main__ - INFO - Epoch 217/1000 - Train Loss: 0.015748, Val Loss: 0.152514
+2025-03-31 20:39:56,162 - __main__ - INFO - Epoch 218/1000 - Train Loss: 0.014616, Val Loss: 0.157157
+2025-03-31 20:39:56,516 - __main__ - INFO - Epoch 219/1000 - Train Loss: 0.014026, Val Loss: 0.159439
+2025-03-31 20:39:56,901 - __main__ - INFO - Epoch 220/1000 - Train Loss: 0.013113, Val Loss: 0.160026
+2025-03-31 20:39:57,314 - __main__ - INFO - Epoch 221/1000 - Train Loss: 0.014278, Val Loss: 0.157416
+2025-03-31 20:39:57,705 - __main__ - INFO - Epoch 222/1000 - Train Loss: 0.013927, Val Loss: 0.154712
+2025-03-31 20:39:58,079 - __main__ - INFO - Epoch 223/1000 - Train Loss: 0.014120, Val Loss: 0.151784
+2025-03-31 20:39:58,438 - __main__ - INFO - Epoch 224/1000 - Train Loss: 0.014368, Val Loss: 0.151303
+2025-03-31 20:39:58,842 - __main__ - INFO - Epoch 225/1000 - Train Loss: 0.013637, Val Loss: 0.152373
+2025-03-31 20:39:59,189 - __main__ - INFO - Epoch 226/1000 - Train Loss: 0.012894, Val Loss: 0.152641
+2025-03-31 20:39:59,567 - __main__ - INFO - Epoch 227/1000 - Train Loss: 0.014240, Val Loss: 0.154045
+2025-03-31 20:40:00,039 - __main__ - INFO - Epoch 228/1000 - Train Loss: 0.012196, Val Loss: 0.154911
+2025-03-31 20:40:00,433 - __main__ - INFO - Epoch 229/1000 - Train Loss: 0.013826, Val Loss: 0.155351
+2025-03-31 20:40:00,940 - __main__ - INFO - Epoch 230/1000 - Train Loss: 0.014569, Val Loss: 0.160575
+2025-03-31 20:40:01,332 - __main__ - INFO - Epoch 231/1000 - Train Loss: 0.013341, Val Loss: 0.165227
+2025-03-31 20:40:01,703 - __main__ - INFO - Epoch 232/1000 - Train Loss: 0.013717, Val Loss: 0.165410
+2025-03-31 20:40:03,774 - __main__ - INFO - Epoch 233/1000 - Train Loss: 0.014190, Val Loss: 0.159160
+2025-03-31 20:40:04,153 - __main__ - INFO - Epoch 234/1000 - Train Loss: 0.014519, Val Loss: 0.154112
+2025-03-31 20:40:04,494 - __main__ - INFO - Epoch 235/1000 - Train Loss: 0.012988, Val Loss: 0.154043
+2025-03-31 20:40:04,923 - __main__ - INFO - Epoch 236/1000 - Train Loss: 0.013028, Val Loss: 0.158607
+2025-03-31 20:40:05,304 - __main__ - INFO - Epoch 237/1000 - Train Loss: 0.013651, Val Loss: 0.161725
+2025-03-31 20:40:05,708 - __main__ - INFO - Epoch 238/1000 - Train Loss: 0.011998, Val Loss: 0.163668
+2025-03-31 20:40:06,095 - __main__ - INFO - Epoch 239/1000 - Train Loss: 0.012141, Val Loss: 0.162067
+2025-03-31 20:40:06,575 - __main__ - INFO - Epoch 240/1000 - Train Loss: 0.013234, Val Loss: 0.157047
+2025-03-31 20:40:07,046 - __main__ - INFO - Epoch 241/1000 - Train Loss: 0.013125, Val Loss: 0.151137
+2025-03-31 20:40:07,506 - __main__ - INFO - Epoch 242/1000 - Train Loss: 0.013421, Val Loss: 0.151154
+2025-03-31 20:40:07,955 - __main__ - INFO - Epoch 243/1000 - Train Loss: 0.012138, Val Loss: 0.155950
+2025-03-31 20:40:08,366 - __main__ - INFO - Epoch 244/1000 - Train Loss: 0.012446, Val Loss: 0.161284
+2025-03-31 20:40:08,779 - __main__ - INFO - Epoch 245/1000 - Train Loss: 0.013244, Val Loss: 0.163939
+2025-03-31 20:40:09,288 - __main__ - INFO - Epoch 246/1000 - Train Loss: 0.012331, Val Loss: 0.161382
+2025-03-31 20:40:09,622 - __main__ - INFO - Epoch 247/1000 - Train Loss: 0.012100, Val Loss: 0.155257
+2025-03-31 20:40:09,958 - __main__ - INFO - Epoch 248/1000 - Train Loss: 0.011918, Val Loss: 0.150765
+2025-03-31 20:40:10,325 - __main__ - INFO - Epoch 249/1000 - Train Loss: 0.013211, Val Loss: 0.151876
+2025-03-31 20:40:10,748 - __main__ - INFO - Epoch 250/1000 - Train Loss: 0.012276, Val Loss: 0.154080
+2025-03-31 20:40:11,228 - __main__ - INFO - Epoch 251/1000 - Train Loss: 0.011796, Val Loss: 0.156670
+2025-03-31 20:40:11,718 - __main__ - INFO - Epoch 252/1000 - Train Loss: 0.013017, Val Loss: 0.161096
+2025-03-31 20:40:12,150 - __main__ - INFO - Epoch 253/1000 - Train Loss: 0.012748, Val Loss: 0.165137
+2025-03-31 20:40:12,600 - __main__ - INFO - Epoch 254/1000 - Train Loss: 0.011664, Val Loss: 0.163044
+2025-03-31 20:40:13,080 - __main__ - INFO - Epoch 255/1000 - Train Loss: 0.012161, Val Loss: 0.157610
+2025-03-31 20:40:13,482 - __main__ - INFO - Epoch 256/1000 - Train Loss: 0.011876, Val Loss: 0.154334
+2025-03-31 20:40:13,931 - __main__ - INFO - Epoch 257/1000 - Train Loss: 0.011508, Val Loss: 0.152737
+2025-03-31 20:40:14,323 - __main__ - INFO - Epoch 258/1000 - Train Loss: 0.011383, Val Loss: 0.150912
+2025-03-31 20:40:14,769 - __main__ - INFO - Epoch 259/1000 - Train Loss: 0.012461, Val Loss: 0.150699
+2025-03-31 20:40:15,208 - __main__ - INFO - Epoch 260/1000 - Train Loss: 0.010953, Val Loss: 0.151366
+2025-03-31 20:40:15,682 - __main__ - INFO - Epoch 261/1000 - Train Loss: 0.010749, Val Loss: 0.153830
+2025-03-31 20:40:16,034 - __main__ - INFO - Epoch 262/1000 - Train Loss: 0.011819, Val Loss: 0.159969
+2025-03-31 20:40:16,459 - __main__ - INFO - Epoch 263/1000 - Train Loss: 0.012815, Val Loss: 0.167760
+2025-03-31 20:40:16,871 - __main__ - INFO - Epoch 264/1000 - Train Loss: 0.011303, Val Loss: 0.171590
+2025-03-31 20:40:17,268 - __main__ - INFO - Epoch 265/1000 - Train Loss: 0.012472, Val Loss: 0.168241
+2025-03-31 20:40:17,630 - __main__ - INFO - Epoch 266/1000 - Train Loss: 0.012364, Val Loss: 0.158637
+2025-03-31 20:40:18,019 - __main__ - INFO - Epoch 267/1000 - Train Loss: 0.012188, Val Loss: 0.147365
+2025-03-31 20:40:18,376 - __main__ - INFO - Epoch 268/1000 - Train Loss: 0.011691, Val Loss: 0.142288
+2025-03-31 20:40:18,767 - __main__ - INFO - Epoch 269/1000 - Train Loss: 0.011466, Val Loss: 0.142979
+2025-03-31 20:40:19,162 - __main__ - INFO - Epoch 270/1000 - Train Loss: 0.010429, Val Loss: 0.149259
+2025-03-31 20:40:19,662 - __main__ - INFO - Epoch 271/1000 - Train Loss: 0.011639, Val Loss: 0.155406
+2025-03-31 20:40:20,164 - __main__ - INFO - Epoch 272/1000 - Train Loss: 0.011170, Val Loss: 0.154003
+2025-03-31 20:40:20,594 - __main__ - INFO - Epoch 273/1000 - Train Loss: 0.010977, Val Loss: 0.148207
+2025-03-31 20:40:20,943 - __main__ - INFO - Epoch 274/1000 - Train Loss: 0.010796, Val Loss: 0.142066
+2025-03-31 20:40:21,377 - __main__ - INFO - Epoch 275/1000 - Train Loss: 0.011182, Val Loss: 0.139933
+2025-03-31 20:40:21,784 - __main__ - INFO - Epoch 276/1000 - Train Loss: 0.011433, Val Loss: 0.142474
+2025-03-31 20:40:22,257 - __main__ - INFO - Epoch 277/1000 - Train Loss: 0.011916, Val Loss: 0.143068
+2025-03-31 20:40:22,602 - __main__ - INFO - Epoch 278/1000 - Train Loss: 0.011141, Val Loss: 0.146047
+2025-03-31 20:40:22,944 - __main__ - INFO - Epoch 279/1000 - Train Loss: 0.010348, Val Loss: 0.146108
+2025-03-31 20:40:23,384 - __main__ - INFO - Epoch 280/1000 - Train Loss: 0.009842, Val Loss: 0.146636
+2025-03-31 20:40:23,734 - __main__ - INFO - Epoch 281/1000 - Train Loss: 0.010438, Val Loss: 0.146876
+2025-03-31 20:40:24,145 - __main__ - INFO - Epoch 282/1000 - Train Loss: 0.010225, Val Loss: 0.148156
+2025-03-31 20:40:24,602 - __main__ - INFO - Epoch 283/1000 - Train Loss: 0.010151, Val Loss: 0.150059
+2025-03-31 20:40:24,961 - __main__ - INFO - Epoch 284/1000 - Train Loss: 0.009829, Val Loss: 0.149551
+2025-03-31 20:40:25,364 - __main__ - INFO - Epoch 285/1000 - Train Loss: 0.010180, Val Loss: 0.147150
+2025-03-31 20:40:25,815 - __main__ - INFO - Epoch 286/1000 - Train Loss: 0.010821, Val Loss: 0.145031
+2025-03-31 20:40:26,311 - __main__ - INFO - Epoch 287/1000 - Train Loss: 0.009189, Val Loss: 0.142661
+2025-03-31 20:40:26,775 - __main__ - INFO - Epoch 288/1000 - Train Loss: 0.009747, Val Loss: 0.143438
+2025-03-31 20:40:27,148 - __main__ - INFO - Epoch 289/1000 - Train Loss: 0.009791, Val Loss: 0.146504
+2025-03-31 20:40:27,552 - __main__ - INFO - Epoch 290/1000 - Train Loss: 0.009608, Val Loss: 0.149746
+2025-03-31 20:40:28,009 - __main__ - INFO - Epoch 291/1000 - Train Loss: 0.010104, Val Loss: 0.152471
+2025-03-31 20:40:28,393 - __main__ - INFO - Epoch 292/1000 - Train Loss: 0.009330, Val Loss: 0.153758
+2025-03-31 20:40:28,911 - __main__ - INFO - Epoch 293/1000 - Train Loss: 0.009394, Val Loss: 0.152313
+2025-03-31 20:40:29,302 - __main__ - INFO - Epoch 294/1000 - Train Loss: 0.009987, Val Loss: 0.147993
+2025-03-31 20:40:29,781 - __main__ - INFO - Epoch 295/1000 - Train Loss: 0.008949, Val Loss: 0.144574
+2025-03-31 20:40:30,297 - __main__ - INFO - Epoch 296/1000 - Train Loss: 0.009300, Val Loss: 0.142889
+2025-03-31 20:40:30,667 - __main__ - INFO - Epoch 297/1000 - Train Loss: 0.009241, Val Loss: 0.142611
+2025-03-31 20:40:31,058 - __main__ - INFO - Epoch 298/1000 - Train Loss: 0.009361, Val Loss: 0.144273
+2025-03-31 20:40:31,454 - __main__ - INFO - Epoch 299/1000 - Train Loss: 0.009480, Val Loss: 0.143885
+2025-03-31 20:40:31,824 - __main__ - INFO - Epoch 300/1000 - Train Loss: 0.009485, Val Loss: 0.141824
+2025-03-31 20:40:32,347 - __main__ - INFO - Epoch 301/1000 - Train Loss: 0.009419, Val Loss: 0.137929
+2025-03-31 20:40:32,793 - __main__ - INFO - Epoch 302/1000 - Train Loss: 0.008894, Val Loss: 0.137126
+2025-03-31 20:40:33,283 - __main__ - INFO - Epoch 303/1000 - Train Loss: 0.008515, Val Loss: 0.138875
+2025-03-31 20:40:33,690 - __main__ - INFO - Epoch 304/1000 - Train Loss: 0.009790, Val Loss: 0.143708
+2025-03-31 20:40:34,191 - __main__ - INFO - Epoch 305/1000 - Train Loss: 0.009339, Val Loss: 0.150403
+2025-03-31 20:40:34,533 - __main__ - INFO - Epoch 306/1000 - Train Loss: 0.009513, Val Loss: 0.155319
+2025-03-31 20:40:34,903 - __main__ - INFO - Epoch 307/1000 - Train Loss: 0.009683, Val Loss: 0.154234
+2025-03-31 20:40:35,342 - __main__ - INFO - Epoch 308/1000 - Train Loss: 0.009487, Val Loss: 0.149593
+2025-03-31 20:40:37,520 - __main__ - INFO - Epoch 309/1000 - Train Loss: 0.009522, Val Loss: 0.146739
+2025-03-31 20:40:37,935 - __main__ - INFO - Epoch 310/1000 - Train Loss: 0.009476, Val Loss: 0.148363
+2025-03-31 20:40:38,340 - __main__ - INFO - Epoch 311/1000 - Train Loss: 0.009979, Val Loss: 0.151576
+2025-03-31 20:40:38,706 - __main__ - INFO - Epoch 312/1000 - Train Loss: 0.009200, Val Loss: 0.153239
+2025-03-31 20:40:39,048 - __main__ - INFO - Epoch 313/1000 - Train Loss: 0.009686, Val Loss: 0.156022
+2025-03-31 20:40:39,454 - __main__ - INFO - Epoch 314/1000 - Train Loss: 0.008864, Val Loss: 0.156542
+2025-03-31 20:40:39,779 - __main__ - INFO - Epoch 315/1000 - Train Loss: 0.008836, Val Loss: 0.154442
+2025-03-31 20:40:40,160 - __main__ - INFO - Epoch 316/1000 - Train Loss: 0.008736, Val Loss: 0.152042
+2025-03-31 20:40:40,538 - __main__ - INFO - Epoch 317/1000 - Train Loss: 0.009506, Val Loss: 0.150260
+2025-03-31 20:40:40,909 - __main__ - INFO - Epoch 318/1000 - Train Loss: 0.008993, Val Loss: 0.151252
+2025-03-31 20:40:41,339 - __main__ - INFO - Epoch 319/1000 - Train Loss: 0.008345, Val Loss: 0.150143
+2025-03-31 20:40:41,786 - __main__ - INFO - Epoch 320/1000 - Train Loss: 0.009056, Val Loss: 0.149149
+2025-03-31 20:40:42,303 - __main__ - INFO - Epoch 321/1000 - Train Loss: 0.009016, Val Loss: 0.149624
+2025-03-31 20:40:42,724 - __main__ - INFO - Epoch 322/1000 - Train Loss: 0.008472, Val Loss: 0.151200
+2025-03-31 20:40:43,265 - __main__ - INFO - Epoch 323/1000 - Train Loss: 0.008612, Val Loss: 0.150506
+2025-03-31 20:40:43,609 - __main__ - INFO - Epoch 324/1000 - Train Loss: 0.008104, Val Loss: 0.148637
+2025-03-31 20:40:44,066 - __main__ - INFO - Epoch 325/1000 - Train Loss: 0.008692, Val Loss: 0.148741
+2025-03-31 20:40:44,426 - __main__ - INFO - Epoch 326/1000 - Train Loss: 0.008736, Val Loss: 0.149119
+2025-03-31 20:40:44,886 - __main__ - INFO - Epoch 327/1000 - Train Loss: 0.008302, Val Loss: 0.152011
+2025-03-31 20:40:45,343 - __main__ - INFO - Epoch 328/1000 - Train Loss: 0.009020, Val Loss: 0.152335
+2025-03-31 20:40:45,740 - __main__ - INFO - Epoch 329/1000 - Train Loss: 0.008718, Val Loss: 0.148133
+2025-03-31 20:40:46,209 - __main__ - INFO - Epoch 330/1000 - Train Loss: 0.007884, Val Loss: 0.146129
+2025-03-31 20:40:46,599 - __main__ - INFO - Epoch 331/1000 - Train Loss: 0.008208, Val Loss: 0.144040
+2025-03-31 20:40:47,090 - __main__ - INFO - Epoch 332/1000 - Train Loss: 0.008079, Val Loss: 0.143223
+2025-03-31 20:40:47,441 - __main__ - INFO - Epoch 333/1000 - Train Loss: 0.007987, Val Loss: 0.143275
+2025-03-31 20:40:47,925 - __main__ - INFO - Epoch 334/1000 - Train Loss: 0.007681, Val Loss: 0.143746
+2025-03-31 20:40:48,350 - __main__ - INFO - Epoch 335/1000 - Train Loss: 0.008000, Val Loss: 0.142292
+2025-03-31 20:40:48,678 - __main__ - INFO - Epoch 336/1000 - Train Loss: 0.009134, Val Loss: 0.140699
+2025-03-31 20:40:49,110 - __main__ - INFO - Epoch 337/1000 - Train Loss: 0.007963, Val Loss: 0.138425
+2025-03-31 20:40:49,593 - __main__ - INFO - Epoch 338/1000 - Train Loss: 0.007929, Val Loss: 0.139446
+2025-03-31 20:40:50,201 - __main__ - INFO - Epoch 339/1000 - Train Loss: 0.007369, Val Loss: 0.142916
+2025-03-31 20:40:50,586 - __main__ - INFO - Epoch 340/1000 - Train Loss: 0.007530, Val Loss: 0.147994
+2025-03-31 20:40:51,004 - __main__ - INFO - Epoch 341/1000 - Train Loss: 0.007638, Val Loss: 0.151270
+2025-03-31 20:40:51,315 - __main__ - INFO - Epoch 342/1000 - Train Loss: 0.007762, Val Loss: 0.151679
+2025-03-31 20:40:51,675 - __main__ - INFO - Epoch 343/1000 - Train Loss: 0.007678, Val Loss: 0.150321
+2025-03-31 20:40:52,016 - __main__ - INFO - Epoch 344/1000 - Train Loss: 0.008050, Val Loss: 0.147135
+2025-03-31 20:40:52,453 - __main__ - INFO - Epoch 345/1000 - Train Loss: 0.007053, Val Loss: 0.143293
+2025-03-31 20:40:52,865 - __main__ - INFO - Epoch 346/1000 - Train Loss: 0.007753, Val Loss: 0.142156
+2025-03-31 20:40:53,237 - __main__ - INFO - Epoch 347/1000 - Train Loss: 0.007536, Val Loss: 0.142936
+2025-03-31 20:40:53,646 - __main__ - INFO - Epoch 348/1000 - Train Loss: 0.007832, Val Loss: 0.144393
+2025-03-31 20:40:54,138 - __main__ - INFO - Epoch 349/1000 - Train Loss: 0.008850, Val Loss: 0.145278
+2025-03-31 20:40:54,736 - __main__ - INFO - Epoch 350/1000 - Train Loss: 0.007269, Val Loss: 0.142927
+2025-03-31 20:40:55,155 - __main__ - INFO - Epoch 351/1000 - Train Loss: 0.007799, Val Loss: 0.139735
+2025-03-31 20:40:55,556 - __main__ - INFO - Epoch 352/1000 - Train Loss: 0.006920, Val Loss: 0.138188
+2025-03-31 20:40:55,958 - __main__ - INFO - Epoch 353/1000 - Train Loss: 0.007336, Val Loss: 0.138233
+2025-03-31 20:40:56,293 - __main__ - INFO - Epoch 354/1000 - Train Loss: 0.007566, Val Loss: 0.141324
+2025-03-31 20:40:56,707 - __main__ - INFO - Epoch 355/1000 - Train Loss: 0.006728, Val Loss: 0.146136
+2025-03-31 20:40:57,130 - __main__ - INFO - Epoch 356/1000 - Train Loss: 0.006925, Val Loss: 0.148819
+2025-03-31 20:40:57,513 - __main__ - INFO - Epoch 357/1000 - Train Loss: 0.007509, Val Loss: 0.151210
+2025-03-31 20:40:57,917 - __main__ - INFO - Epoch 358/1000 - Train Loss: 0.007613, Val Loss: 0.151267
+2025-03-31 20:40:58,352 - __main__ - INFO - Epoch 359/1000 - Train Loss: 0.007869, Val Loss: 0.151795
+2025-03-31 20:40:58,825 - __main__ - INFO - Epoch 360/1000 - Train Loss: 0.007118, Val Loss: 0.150302
+2025-03-31 20:40:59,308 - __main__ - INFO - Epoch 361/1000 - Train Loss: 0.007065, Val Loss: 0.148594
+2025-03-31 20:40:59,645 - __main__ - INFO - Epoch 362/1000 - Train Loss: 0.007902, Val Loss: 0.150666
+2025-03-31 20:41:00,054 - __main__ - INFO - Epoch 363/1000 - Train Loss: 0.007633, Val Loss: 0.151428
+2025-03-31 20:41:00,416 - __main__ - INFO - Epoch 364/1000 - Train Loss: 0.006515, Val Loss: 0.151649
+2025-03-31 20:41:00,860 - __main__ - INFO - Epoch 365/1000 - Train Loss: 0.007281, Val Loss: 0.150548
+2025-03-31 20:41:01,286 - __main__ - INFO - Epoch 366/1000 - Train Loss: 0.007434, Val Loss: 0.147389
+2025-03-31 20:41:01,680 - __main__ - INFO - Epoch 367/1000 - Train Loss: 0.007325, Val Loss: 0.145062
+2025-03-31 20:41:02,090 - __main__ - INFO - Epoch 368/1000 - Train Loss: 0.006990, Val Loss: 0.144502
+2025-03-31 20:41:02,442 - __main__ - INFO - Epoch 369/1000 - Train Loss: 0.006261, Val Loss: 0.144637
+2025-03-31 20:41:02,806 - __main__ - INFO - Epoch 370/1000 - Train Loss: 0.007327, Val Loss: 0.144291
+2025-03-31 20:41:03,340 - __main__ - INFO - Epoch 371/1000 - Train Loss: 0.007359, Val Loss: 0.141016
+2025-03-31 20:41:03,802 - __main__ - INFO - Epoch 372/1000 - Train Loss: 0.006561, Val Loss: 0.138401
+2025-03-31 20:41:04,226 - __main__ - INFO - Epoch 373/1000 - Train Loss: 0.006458, Val Loss: 0.136542
+2025-03-31 20:41:04,673 - __main__ - INFO - Epoch 374/1000 - Train Loss: 0.007610, Val Loss: 0.137533
+2025-03-31 20:41:05,136 - __main__ - INFO - Epoch 375/1000 - Train Loss: 0.007283, Val Loss: 0.137894
+2025-03-31 20:41:05,665 - __main__ - INFO - Epoch 376/1000 - Train Loss: 0.007300, Val Loss: 0.139704
+2025-03-31 20:41:06,042 - __main__ - INFO - Epoch 377/1000 - Train Loss: 0.006715, Val Loss: 0.143423
+2025-03-31 20:41:06,451 - __main__ - INFO - Epoch 378/1000 - Train Loss: 0.006205, Val Loss: 0.146303
+2025-03-31 20:41:06,886 - __main__ - INFO - Epoch 379/1000 - Train Loss: 0.006735, Val Loss: 0.148160
+2025-03-31 20:41:07,251 - __main__ - INFO - Epoch 380/1000 - Train Loss: 0.006717, Val Loss: 0.147693
+2025-03-31 20:41:07,666 - __main__ - INFO - Epoch 381/1000 - Train Loss: 0.006845, Val Loss: 0.145520
+2025-03-31 20:41:08,183 - __main__ - INFO - Epoch 382/1000 - Train Loss: 0.006270, Val Loss: 0.144543
+2025-03-31 20:41:08,538 - __main__ - INFO - Epoch 383/1000 - Train Loss: 0.006518, Val Loss: 0.144233
+2025-03-31 20:41:08,890 - __main__ - INFO - Epoch 384/1000 - Train Loss: 0.006922, Val Loss: 0.144075
+2025-03-31 20:41:09,313 - __main__ - INFO - Epoch 385/1000 - Train Loss: 0.005811, Val Loss: 0.143208
+2025-03-31 20:41:11,555 - __main__ - INFO - Epoch 386/1000 - Train Loss: 0.006489, Val Loss: 0.142526
+2025-03-31 20:41:11,983 - __main__ - INFO - Epoch 387/1000 - Train Loss: 0.006794, Val Loss: 0.141748
+2025-03-31 20:41:12,339 - __main__ - INFO - Epoch 388/1000 - Train Loss: 0.006765, Val Loss: 0.144497
+2025-03-31 20:41:12,760 - __main__ - INFO - Epoch 389/1000 - Train Loss: 0.005873, Val Loss: 0.147873
+2025-03-31 20:41:13,199 - __main__ - INFO - Epoch 390/1000 - Train Loss: 0.006679, Val Loss: 0.151001
+2025-03-31 20:41:13,748 - __main__ - INFO - Epoch 391/1000 - Train Loss: 0.006342, Val Loss: 0.152148
+2025-03-31 20:41:14,178 - __main__ - INFO - Epoch 392/1000 - Train Loss: 0.006051, Val Loss: 0.149220
+2025-03-31 20:41:14,574 - __main__ - INFO - Epoch 393/1000 - Train Loss: 0.007071, Val Loss: 0.146088
+2025-03-31 20:41:14,962 - __main__ - INFO - Epoch 394/1000 - Train Loss: 0.006372, Val Loss: 0.144387
+2025-03-31 20:41:15,398 - __main__ - INFO - Epoch 395/1000 - Train Loss: 0.006591, Val Loss: 0.146609
+2025-03-31 20:41:15,797 - __main__ - INFO - Epoch 396/1000 - Train Loss: 0.006182, Val Loss: 0.148982
+2025-03-31 20:41:16,183 - __main__ - INFO - Epoch 397/1000 - Train Loss: 0.006560, Val Loss: 0.148320
+2025-03-31 20:41:16,576 - __main__ - INFO - Epoch 398/1000 - Train Loss: 0.006355, Val Loss: 0.147310
+2025-03-31 20:41:16,953 - __main__ - INFO - Epoch 399/1000 - Train Loss: 0.006004, Val Loss: 0.143632
+2025-03-31 20:41:17,510 - __main__ - INFO - Epoch 400/1000 - Train Loss: 0.006477, Val Loss: 0.138826
+2025-03-31 20:41:17,925 - __main__ - INFO - Epoch 401/1000 - Train Loss: 0.006591, Val Loss: 0.135211
+2025-03-31 20:41:18,320 - __main__ - INFO - Epoch 402/1000 - Train Loss: 0.006385, Val Loss: 0.132529
+2025-03-31 20:41:18,321 - __main__ - INFO - 连续 10 个epoch没有改善，提前停止训练
+2025-03-31 20:41:18,729 - __main__ - INFO - 成功加载最佳模型
+2025-03-31 20:41:19,043 - __main__ - INFO - 模型训练和评估完成！
+2025-03-31 20:41:19,043 - __main__ - INFO - 结果保存在: ./output
