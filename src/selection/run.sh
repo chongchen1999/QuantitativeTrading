@@ -2,13 +2,13 @@
 #!/bin/bash
 
 # Enhanced parameters
-# DATA_DIR="/home/tourist/neu/QuantitativeTrading/data/high_price_stocks"
-DATA_DIR="/home/tourist/neu/QuantitativeTrading/data/mockdata/stocks"
+DATA_DIR="/home/tourist/neu/QuantitativeTrading/data/high_price_stocks"
+# DATA_DIR="/home/tourist/neu/QuantitativeTrading/data/mockdata/stocks"
 TRAIN_START="2020-06-01"
-TRAIN_END="2021-01-30"
-TEST_START="2021-02-01"
-TEST_END="2021-5-30"
-SEQ_LEN=20
+TRAIN_END="2021-01-01"
+TEST_START="2021-01-02"
+TEST_END="2021-12-01"
+SEQ_LEN=30
 BATCH_SIZE=32
 EPOCHS=1000
 LEARNING_RATE=0.002
@@ -16,7 +16,7 @@ D_MODEL=128
 NUM_HEADS=4
 NUM_LAYERS=4
 DROPOUT=0.1
-EARLY_STOP=5
+EARLY_STOP=50
 
 # Create data directory if it doesn't exist
 mkdir -p $DATA_DIR
