@@ -186,17 +186,26 @@ class StockTransformer(nn.Module):
         x = x.reshape(batch_size, num_stocks, -1)
         return self.fc(x).squeeze(-1)
     
-def train_model(model, train_loader, val_loader, epochs=1000, lr=0.001, device='cuda'):
+def train_model(model, train_loader, val_loader, epochs=2000, lr=0.001, device='cuda'):
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10)
     criterion = nn.MSELoss()
 
-    best_loss = float('inf')
+    best_val_loss = float('inf')
+    warmup_epochs = 200  # 10% of total epochs for warmup
     counter = 0
     
     print(f"Training on {device}")
+    print(f"Initial learning rate: {lr:.6e}")
     
     for epoch in range(epochs):
+        # Learning rate warmup
+        if epoch < warmup_epochs:
+            warmup_lr = lr * (epoch + 1) / warmup_epochs
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = warmup_lr
+
         model.train()
         train_loss = 0
         for batch_x, batch_y in train_loader:
@@ -207,6 +216,7 @@ def train_model(model, train_loader, val_loader, epochs=1000, lr=0.001, device='
             pred = model(batch_x)
             loss = criterion(pred, batch_y)
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # Gradient clipping
             optimizer.step()
             train_loss += loss.item()
             
@@ -221,18 +231,36 @@ def train_model(model, train_loader, val_loader, epochs=1000, lr=0.001, device='
                 loss = criterion(pred, batch_y)
                 val_loss += loss.item()
         
-        if (epoch + 1) % 10 == 0:  # Print every 10 epochs
-            print(f'Epoch {epoch + 1}, Train Loss: {train_loss/len(train_loader):.6f}, '
-                  f'Val Loss: {val_loss/len(val_loader):.6f}')
+        avg_train_loss = train_loss / len(train_loader)
+        avg_val_loss = val_loss / len(val_loader)
+        
+        # Update learning rate after warmup
+        if epoch >= warmup_epochs:
+            scheduler.step(avg_val_loss)
+
+        current_lr = optimizer.param_groups[0]['lr']
+        
+        if epoch % 10 == 0:
+            print(f'Epoch {epoch}, Train Loss: {avg_train_loss:.6f}, '
+                  f'Val Loss: {avg_val_loss:.6f}, LR: {current_lr:.6e}')
             
-        if train_loss < best_loss:
-            best_loss = train_loss
+        # Save best model based on validation loss
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
             torch.save(model.state_dict(), 'best_model.pt')
             counter = 0
         else:
-            counter = 1
-            if counter >= 100:
+            counter += 1
+            if counter >= 500:
+                print(f"Early stopping triggered at epoch {epoch + 1}")
                 break
+
+        # Stop if learning rate becomes too small
+        if current_lr < 1e-6:
+            print(f"Learning rate too small ({current_lr:.6e}), stopping training")
+            break
+
+    return model
 
 def plot_predictions(model, test_loader, stock_names, device='cuda'):
     model.eval()

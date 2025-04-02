@@ -41,6 +41,7 @@ def main():
     
     print("Creating training dataset...")
     train_dataset = StockDataset(args.data_dir, args.train_start, args.train_end, args.seq_len)
+    
     print("Creating testing dataset...")
     test_dataset = StockDataset(args.data_dir, args.test_start, args.test_end, args.seq_len)
     
