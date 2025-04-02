@@ -24,79 +24,335 @@ class PositionalEncoding(nn.Module):
         return x + self.pe[:, :x.size(1)]
 
 class StockDataset(Dataset):
-    def __init__(self, data_dir, start_date, end_date, seq_len):
+    def __init__(self, data_dir, start_date, end_date, seq_len, fill_method='forward', min_valid_ratio=0.8):
+        """
+        Initialize the stock dataset.
+        
+        Args:
+            data_dir: Directory containing stock CSV files
+            start_date: Start date for the dataset
+            end_date: End date for the dataset
+            seq_len: Length of each sequence
+            fill_method: Method to fill missing values ('forward', 'mean', or 'zero')
+            min_valid_ratio: Minimum ratio of valid data points required in a sequence
+        """
         self.seq_len = seq_len
+        self.fill_method = fill_method
+        self.min_valid_ratio = min_valid_ratio
         self.data = []
         self.labels = []
+        self.stock_indices = []  # Keep track of which stocks are in each sequence
         self.scalers = {}  # Store scalers for each stock
         
         csv_files = glob.glob(f"{data_dir}/*.csv")
         stock_data = []
+        stock_files = []  # Keep track of which files were successfully processed
         
         start_date = pd.to_datetime(start_date)
         end_date = pd.to_datetime(end_date)
         
+        # Process each stock file
         for file in csv_files:
-            df = pd.read_csv(file)
-            df['timestamp'] = pd.to_datetime(df['timestamp'])
-            df = df[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date)]
-            df = df.sort_values('timestamp')
-            
-            # Calculate multiple features
-            df['returns'] = np.log(df['close'] / df['close'].shift(1))
-            df['volume_ma5'] = df['volume'].rolling(window=5).mean()
-            df['price_ma5'] = df['close'].rolling(window=5).mean()
-            df['price_ma20'] = df['close'].rolling(window=20).mean()
-            df['volatility'] = df['returns'].rolling(window=20).std()
-            
-            # Create feature matrix
-            features = ['returns', 'volume_ma5', 'price_ma5', 'price_ma20', 'volatility']
-            df = df.dropna()
-            
-            # Normalize features
-            scaler = StandardScaler()
-            df[features] = scaler.fit_transform(df[features])
-            self.scalers[file] = scaler
-            
-            stock_data.append(df)
+            try:
+                df = pd.read_csv(file)
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                df = df[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date)]
+                
+                # Skip if dataframe is empty after date filtering
+                if len(df) == 0:
+                    print(f"Skipping {file} - no data within date range")
+                    continue
+                    
+                df = df.sort_values('timestamp')
+                
+                # Calculate multiple features
+                df['returns'] = np.log(df['close'] / df['close'].shift(1))
+                df['volume_ma5'] = df['volume'].rolling(window=5).mean()
+                df['price_ma5'] = df['close'].rolling(window=5).mean()
+                df['price_ma20'] = df['close'].rolling(window=20).mean()
+                df['volatility'] = df['returns'].rolling(window=20).std()
+                
+                # Create feature matrix
+                features = ['returns', 'volume_ma5', 'price_ma5', 'price_ma20', 'volatility']
+                
+                # Handle missing values based on the specified method
+                self._handle_missing_values(df, features)
+                
+                # Skip if the dataframe has no valid rows after handling missing values
+                if len(df.dropna(subset=features)) == 0:
+                    print(f"Skipping {file} - no valid data after handling missing values")
+                    continue
+                
+                # Normalize features - use only non-NaN values for fitting the scaler
+                valid_data = df[features].dropna()
+                if len(valid_data) == 0:
+                    print(f"Skipping {file} - no valid data for scaling")
+                    continue
+                    
+                scaler = StandardScaler()
+                scaler.fit(valid_data)  # Fit on valid data only
+                
+                # Transform the entire dataset, NaNs will remain NaNs
+                df[features] = pd.DataFrame(
+                    scaler.transform(df[features].fillna(0)),  # Temporarily fill NaNs for transform
+                    columns=features,
+                    index=df.index
+                )
+                
+                # Replace NaNs back if there were any after scaling
+                for feature in features:
+                    df[feature] = np.where(df[feature].isna(), np.nan, df[feature])
+                
+                # Store the scaler
+                self.scalers[file] = scaler
+                
+                # Keep valid rows (rows with all features valid)
+                df = df.dropna(subset=features)
+                
+                # Check if there's still enough data after dropping NaNs
+                if len(df) <= self.seq_len:
+                    print(f"Skipping {file} - not enough data points after dropping NaNs")
+                    continue
+                
+                stock_data.append(df)
+                stock_files.append(file)
+                
+            except Exception as e:
+                print(f"Error processing {file}: {str(e)}")
+                continue
         
-        common_dates = None
-        for df in stock_data:
-            dates = set(df['timestamp'])
-            if common_dates is None:
-                common_dates = dates
+        if len(stock_data) == 0:
+            raise ValueError("No valid stock data found after preprocessing")
+            
+        print(f"Successfully processed {len(stock_data)} out of {len(csv_files)} stocks")
+        
+        # Find common trading dates across all stocks
+        self._process_common_dates(stock_data, stock_files, features)
+    
+    def _handle_missing_values(self, df, features):
+        """
+        Handle missing values in the dataframe.
+        
+        Args:
+            df: DataFrame containing stock data
+            features: List of feature columns
+        """
+        # Count missing values
+        missing_count = df[features].isna().sum().sum()
+        if missing_count > 0:
+            print(f"Found {missing_count} missing values in data")
+            
+            if self.fill_method == 'forward':
+                # Forward fill followed by backward fill to handle any remaining NaNs
+                df[features] = df[features].ffill().bfill()
+            elif self.fill_method == 'mean':
+                # Fill with column means
+                for feature in features:
+                    mean_value = df[feature].mean()
+                    df[feature] = df[feature].fillna(mean_value)
+            elif self.fill_method == 'zero':
+                # Fill with zeros
+                df[features] = df[features].fillna(0)
             else:
-                common_dates = common_dates.intersection(dates)
+                raise ValueError(f"Unsupported fill method: {self.fill_method}")
+    
+    def _process_common_dates(self, stock_data, stock_files, features):
+        """
+        Process common trading dates and create sequences.
         
-        common_dates = sorted(list(common_dates))
-        print(f"Found {len(common_dates)} common trading days")
+        Args:
+            stock_data: List of DataFrames containing processed stock data
+            stock_files: List of file paths corresponding to stock_data
+            features: List of feature columns
+        """
+        if not stock_data:
+            raise ValueError("No stock data available for processing")
         
-        if len(common_dates) < seq_len + 1:
-            raise ValueError(f"Not enough common trading days ({len(common_dates)}) for sequence length {seq_len}")
+        # Find all unique dates across all stocks
+        all_dates = set()
+        stocks_by_date = {}
         
-        for t in range(len(common_dates) - seq_len - 1):
-            current_dates = common_dates[t:t+seq_len]
-            next_date = common_dates[t+seq_len]
+        for i, df in enumerate(stock_data):
+            dates = set(df['timestamp'])
+            all_dates.update(dates)
             
-            X = np.zeros((len(stock_data), seq_len, len(features)))  # Modified for multiple features
-            y = np.zeros(len(stock_data))
+            # Map each date to the stocks that have data for it
+            for date in dates:
+                if date not in stocks_by_date:
+                    stocks_by_date[date] = []
+                stocks_by_date[date].append(i)
+        
+        all_dates = sorted(list(all_dates))
+        print(f"Found {len(all_dates)} unique trading days across all stocks")
+        
+        # Filter dates that have data for at least min_valid_ratio of stocks
+        min_stocks_required = int(len(stock_data) * self.min_valid_ratio)
+        valid_dates = [date for date in all_dates if len(stocks_by_date[date]) >= min_stocks_required]
+        valid_dates.sort()
+        
+        print(f"Found {len(valid_dates)} dates with at least {min_stocks_required} stocks having data")
+        
+        if len(valid_dates) < self.seq_len + 1:
+            raise ValueError(f"Not enough valid trading days ({len(valid_dates)}) for sequence length {self.seq_len}")
+        
+        # Create sequences
+        valid_sequences = 0
+        skipped_sequences = 0
+        
+        # Find the minimum number of common stocks across all sequence windows
+        # to ensure consistent tensor dimensions
+        min_common_stocks = float('inf')
+        sequence_stocks = []
+        
+        # First pass: find common stocks for each sequence window
+        for t in range(len(valid_dates) - self.seq_len):
+            if t + self.seq_len >= len(valid_dates):
+                continue
+                
+            current_dates = valid_dates[t:t+self.seq_len]
+            next_date = valid_dates[t+self.seq_len]
             
-            for i, df in enumerate(stock_data):
+            # Find all stocks that have data for these dates
+            stocks_in_window = set()
+            for date in current_dates:
+                if not stocks_in_window:
+                    stocks_in_window = set(stocks_by_date[date])
+                else:
+                    stocks_in_window &= set(stocks_by_date[date])
+            
+            # Also need stocks that have the label date
+            stocks_with_label = set(stocks_by_date[next_date])
+            valid_stocks = list(stocks_in_window & stocks_with_label)
+            
+            # Skip if not enough stocks for this window
+            if len(valid_stocks) < min_stocks_required:
+                skipped_sequences += 1
+                continue
+            
+            sequence_stocks.append(valid_stocks)
+            min_common_stocks = min(min_common_stocks, len(valid_stocks))
+        
+        print(f"Minimum common stocks across all sequences: {min_common_stocks}")
+        
+        # Second pass: create sequences with the same number of stocks
+        for t, valid_stocks in enumerate(sequence_stocks):
+            current_dates = valid_dates[t:t+self.seq_len]
+            next_date = valid_dates[t+self.seq_len]
+            
+            # Take the first min_common_stocks stocks to ensure consistent dimensions
+            valid_stocks = valid_stocks[:min_common_stocks]
+            
+            # Create feature tensor and label vector for this window
+            X = np.zeros((len(valid_stocks), self.seq_len, len(features)))
+            y = np.zeros(len(valid_stocks))
+            
+            for i, stock_idx in enumerate(valid_stocks):
+                df = stock_data[stock_idx]
+                
+                # Get data for the current window
                 window_data = df[df['timestamp'].isin(current_dates)][features].values
-                if len(window_data) == seq_len:
+                
+                # Make sure we have complete data
+                if len(window_data) == self.seq_len:
                     X[i] = window_data
-                    next_return = df[df['timestamp'] == next_date]['returns'].values
-                    if len(next_return) > 0:
-                        y[i] = next_return[0]
+                    
+                    # Get label (next return)
+                    next_return = df[df['timestamp'] == next_date]['returns'].values[0]
+                    y[i] = next_return
             
+            # Store the sequence
             self.data.append(X)
             self.labels.append(y)
+            self.stock_indices.append(valid_stocks)  # Keep track of which stocks are in each sequence
+            valid_sequences += 1
+        
+        print(f"Created {valid_sequences} valid sequences, skipped {skipped_sequences} sequences due to insufficient data")
+        print(f"Each sequence contains data for {min_common_stocks} stocks")
+        
+        # Make sure we have at least some sequences
+        if valid_sequences == 0:
+            raise ValueError("No valid sequences could be created with the current parameters")
     
     def __len__(self):
         return len(self.data)
     
     def __getitem__(self, idx):
         return torch.FloatTensor(self.data[idx]), torch.FloatTensor(self.labels[idx])
+
+# class StockDataset(Dataset):
+#     def __init__(self, data_dir, start_date, end_date, seq_len):
+#         self.seq_len = seq_len
+#         self.data = []
+#         self.labels = []
+#         self.scalers = {}  # Store scalers for each stock
+        
+#         csv_files = glob.glob(f"{data_dir}/*.csv")
+#         stock_data = []
+        
+#         start_date = pd.to_datetime(start_date)
+#         end_date = pd.to_datetime(end_date)
+        
+#         for file in csv_files:
+#             df = pd.read_csv(file)
+#             df['timestamp'] = pd.to_datetime(df['timestamp'])
+#             df = df[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date)]
+#             df = df.sort_values('timestamp')
+            
+#             # Calculate multiple features
+#             df['returns'] = np.log(df['close'] / df['close'].shift(1))
+#             df['volume_ma5'] = df['volume'].rolling(window=5).mean()
+#             df['price_ma5'] = df['close'].rolling(window=5).mean()
+#             df['price_ma20'] = df['close'].rolling(window=20).mean()
+#             df['volatility'] = df['returns'].rolling(window=20).std()
+            
+#             # Create feature matrix
+#             features = ['returns', 'volume_ma5', 'price_ma5', 'price_ma20', 'volatility']
+#             df = df.dropna()
+            
+#             # Normalize features
+#             scaler = StandardScaler()
+#             df[features] = scaler.fit_transform(df[features])
+#             self.scalers[file] = scaler
+            
+#             stock_data.append(df)
+        
+#         common_dates = None
+#         for df in stock_data:
+#             dates = set(df['timestamp'])
+#             if common_dates is None:
+#                 common_dates = dates
+#             else:
+#                 common_dates = common_dates.intersection(dates)
+        
+#         common_dates = sorted(list(common_dates))
+#         print(f"Found {len(common_dates)} common trading days")
+        
+#         if len(common_dates) < seq_len + 1:
+#             raise ValueError(f"Not enough common trading days ({len(common_dates)}) for sequence length {seq_len}")
+        
+#         for t in range(len(common_dates) - seq_len - 1):
+#             current_dates = common_dates[t:t+seq_len]
+#             next_date = common_dates[t+seq_len]
+            
+#             X = np.zeros((len(stock_data), seq_len, len(features)))  # Modified for multiple features
+#             y = np.zeros(len(stock_data))
+            
+#             for i, df in enumerate(stock_data):
+#                 window_data = df[df['timestamp'].isin(current_dates)][features].values
+#                 if len(window_data) == seq_len:
+#                     X[i] = window_data
+#                     next_return = df[df['timestamp'] == next_date]['returns'].values
+#                     if len(next_return) > 0:
+#                         y[i] = next_return[0]
+            
+#             self.data.append(X)
+#             self.labels.append(y)
+    
+#     def __len__(self):
+#         return len(self.data)
+    
+#     def __getitem__(self, idx):
+#         return torch.FloatTensor(self.data[idx]), torch.FloatTensor(self.labels[idx])
 
 class MultiHeadAttentionLayer(nn.Module):
     def __init__(self, d_model, num_heads, dropout=0.1):
@@ -240,7 +496,7 @@ def train_model(model, train_loader, val_loader, epochs=2000, lr=0.001, device='
 
         current_lr = optimizer.param_groups[0]['lr']
         
-        if epoch % 10 == 0:
+        if epoch % 2 == 0:
             print(f'Epoch {epoch}, Train Loss: {avg_train_loss:.6f}, '
                   f'Val Loss: {avg_val_loss:.6f}, LR: {current_lr:.6e}')
             
@@ -251,7 +507,7 @@ def train_model(model, train_loader, val_loader, epochs=2000, lr=0.001, device='
             counter = 0
         else:
             counter += 1
-            if counter >= 500:
+            if counter >= 50:
                 print(f"Early stopping triggered at epoch {epoch + 1}")
                 break
 
