@@ -407,7 +407,7 @@ class TransformerBlock(nn.Module):
         return x
 
 class StockTransformer(nn.Module):
-    def __init__(self, seq_len, num_stocks, num_features=5, d_model=128, num_heads=8, num_layers=6, dropout=0.1):
+    def __init__(self, seq_len, num_stocks, num_features=5, d_model=128, num_heads=8, num_layers=6, dropout=0.1, early_stop=50):
         super().__init__()
         self.feature_embedding = nn.Linear(num_features, d_model)
         self.pos_encoder = PositionalEncoding(d_model)
@@ -507,7 +507,7 @@ def train_model(model, train_loader, val_loader, epochs=2000, lr=0.001, device='
             counter = 0
         else:
             counter += 1
-            if counter >= 50:
+            if counter >= 30:
                 print(f"Early stopping triggered at epoch {epoch + 1}")
                 break
 
@@ -517,6 +517,88 @@ def train_model(model, train_loader, val_loader, epochs=2000, lr=0.001, device='
             break
 
     return model
+
+# def plot_predictions(model, test_loader, stock_names, device='cuda'):
+#     model.eval()
+#     predictions = []
+#     actuals = []
+    
+#     with torch.no_grad():
+#         for batch_x, batch_y in test_loader:
+#             batch_x = batch_x.to(device)
+#             pred = model(batch_x)
+#             predictions.append(pred.cpu().numpy())
+#             actuals.append(batch_y.numpy())
+    
+#     predictions = np.concatenate(predictions, axis=0)
+#     actuals = np.concatenate(actuals, axis=0)
+    
+#     # 为每支股票创建单独的对比图
+#     n_stocks = len(stock_names)
+#     fig, axes = plt.subplots(n_stocks, 1, figsize=(15, 5*n_stocks))
+#     for i, (ax, stock_name) in enumerate(zip(axes, stock_names)):
+#         ax.plot(predictions[:, i], label='Predicted', color='blue', alpha=0.7)
+#         ax.plot(actuals[:, i], label='Actual', color='red', alpha=0.7)
+#         ax.set_title(f'{stock_name} Return Rate Comparison')
+#         ax.set_xlabel('Time')
+#         ax.set_ylabel('Return Rate')
+#         ax.legend()
+#         ax.grid(True)
+#     plt.tight_layout()
+#     plt.savefig('individual_stock_comparisons.png')
+#     plt.close()
+    
+#     # 创建所有股票实际收益率的对比图
+#     plt.figure(figsize=(15, 8))
+#     for i, stock_name in enumerate(stock_names):
+#         plt.plot(actuals[:, i], label=stock_name)
+#     plt.title('Actual Return Rates Comparison')
+#     plt.xlabel('Time')
+#     plt.ylabel('Return Rate')
+#     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+#     plt.grid(True)
+#     plt.tight_layout()
+#     plt.savefig('actual_returns_comparison.png')
+#     plt.close()
+    
+#     # 创建所有股票预测收益率的对比图
+#     plt.figure(figsize=(15, 8))
+#     for i, stock_name in enumerate(stock_names):
+#         plt.plot(predictions[:, i], label=stock_name)
+#     plt.title('Predicted Return Rates Comparison')
+#     plt.xlabel('Time')
+#     plt.ylabel('Return Rate')
+#     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+#     plt.grid(True)
+#     plt.tight_layout()
+#     plt.savefig('predicted_returns_comparison.png')
+#     plt.close()
+    
+#     # 计算并打印每支股票的预测准确度指标
+#     print("\nPrediction Performance Metrics:")
+#     for i, stock_name in enumerate(stock_names):
+#         mse = np.mean((predictions[:, i] - actuals[:, i])**2)
+#         mae = np.mean(np.abs(predictions[:, i] - actuals[:, i]))
+#         correlation = np.corrcoef(predictions[:, i], actuals[:, i])[0, 1]
+#         print(f"\n{stock_name}:")
+#         print(f"MSE: {mse:.6f}")
+#         print(f"MAE: {mae:.6f}")
+#         print(f"Correlation: {correlation:.6f}")
+
+    
+#     predictions = np.concatenate(predictions, axis=0)
+#     actuals = np.concatenate(actuals, axis=0)
+    
+#     plt.figure(figsize=(15, 10))
+#     for i in range(len(stock_names)):
+#         plt.plot(predictions[:, i], label=f'{stock_names[i]} (pred)')
+#         plt.plot(actuals[:, i], label=f'{stock_names[i]} (actual)')
+    
+#     plt.legend()
+#     plt.title('Predicted vs Actual Returns')
+#     plt.xlabel('Time')
+#     plt.ylabel('Return')
+#     plt.show()
 
 def plot_predictions(model, test_loader, stock_names, device='cuda'):
     model.eval()
@@ -533,9 +615,17 @@ def plot_predictions(model, test_loader, stock_names, device='cuda'):
     predictions = np.concatenate(predictions, axis=0)
     actuals = np.concatenate(actuals, axis=0)
     
+    # Make sure predictions and actuals have the correct shape
+    assert predictions.shape[1] == len(stock_names), f"Mismatch between predictions shape {predictions.shape} and number of stocks {len(stock_names)}"
+    
     # 为每支股票创建单独的对比图
     n_stocks = len(stock_names)
     fig, axes = plt.subplots(n_stocks, 1, figsize=(15, 5*n_stocks))
+    
+    # Handle the case where there's only one stock
+    if n_stocks == 1:
+        axes = [axes]
+    
     for i, (ax, stock_name) in enumerate(zip(axes, stock_names)):
         ax.plot(predictions[:, i], label='Predicted', color='blue', alpha=0.7)
         ax.plot(actuals[:, i], label='Actual', color='red', alpha=0.7)
@@ -585,17 +675,15 @@ def plot_predictions(model, test_loader, stock_names, device='cuda'):
         print(f"MAE: {mae:.6f}")
         print(f"Correlation: {correlation:.6f}")
 
-    
-    predictions = np.concatenate(predictions, axis=0)
-    actuals = np.concatenate(actuals, axis=0)
-    
+    # Final combined plot
     plt.figure(figsize=(15, 10))
-    for i in range(len(stock_names)):
-        plt.plot(predictions[:, i], label=f'{stock_names[i]} (pred)')
-        plt.plot(actuals[:, i], label=f'{stock_names[i]} (actual)')
+    for i, stock_name in enumerate(stock_names):
+        plt.plot(predictions[:, i], label=f'{stock_name} (pred)')
+        plt.plot(actuals[:, i], label=f'{stock_name} (actual)')
     
     plt.legend()
     plt.title('Predicted vs Actual Returns')
     plt.xlabel('Time')
     plt.ylabel('Return')
-    plt.show()
+    plt.savefig('combined_comparison.png')
+    plt.close()

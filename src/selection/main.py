@@ -21,6 +21,7 @@ def parse_args():
     parser.add_argument('--num_heads', type=int, default=8, help='Number of attention heads')
     parser.add_argument('--num_layers', type=int, default=6, help='Number of transformer layers')
     parser.add_argument('--dropout', type=float, default=0.1, help='Dropout rate')
+    parser.add_argument('--early_stop', type=int, default=50, help='Early stopping patience')
     return parser.parse_args()
 
 def main():
@@ -41,7 +42,7 @@ def main():
     
     print("Creating training dataset...")
     train_dataset = StockDataset(args.data_dir, args.train_start, args.train_end, args.seq_len)
-    
+
     print("Creating testing dataset...")
     test_dataset = StockDataset(args.data_dir, args.test_start, args.test_end, args.seq_len)
     
@@ -62,7 +63,8 @@ def main():
         d_model=args.d_model,
         num_heads=args.num_heads,
         num_layers=args.num_layers,
-        dropout=args.dropout
+        dropout=args.dropout,
+        early_stop=args.early_stop
     )
     print(f"Model created with sequence length {args.seq_len} for {num_stocks} stocks")
     

@@ -12,10 +12,11 @@ SEQ_LEN=20
 BATCH_SIZE=32
 EPOCHS=1000
 LEARNING_RATE=0.002
-D_MODEL=256
+D_MODEL=128
 NUM_HEADS=4
-NUM_LAYERS=8
+NUM_LAYERS=4
 DROPOUT=0.1
+EARLY_STOP=5
 
 # Create data directory if it doesn't exist
 mkdir -p $DATA_DIR
@@ -34,4 +35,5 @@ python main.py \
     --d_model $D_MODEL \
     --num_heads $NUM_HEADS \
     --num_layers $NUM_LAYERS \
-    --dropout $DROPOUT
+    --dropout $DROPOUT \
+    --early_stop $EARLY_STOP
