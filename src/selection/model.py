@@ -186,10 +186,13 @@ class StockTransformer(nn.Module):
         x = x.reshape(batch_size, num_stocks, -1)
         return self.fc(x).squeeze(-1)
     
-def train_model(model, train_loader, val_loader, epochs=100, lr=0.001, device='cuda'):
+def train_model(model, train_loader, val_loader, epochs=1000, lr=0.001, device='cuda'):
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.MSELoss()
+
+    best_loss = float('inf')
+    counter = 0
     
     print(f"Training on {device}")
     
@@ -221,6 +224,15 @@ def train_model(model, train_loader, val_loader, epochs=100, lr=0.001, device='c
         if (epoch + 1) % 10 == 0:  # Print every 10 epochs
             print(f'Epoch {epoch + 1}, Train Loss: {train_loss/len(train_loader):.6f}, '
                   f'Val Loss: {val_loss/len(val_loader):.6f}')
+            
+        if train_loss < best_loss:
+            best_loss = train_loss
+            torch.save(model.state_dict(), 'best_model.pt')
+            counter = 0
+        else:
+            counter = 1
+            if counter >= 100:
+                break
 
 def plot_predictions(model, test_loader, stock_names, device='cuda'):
     model.eval()
