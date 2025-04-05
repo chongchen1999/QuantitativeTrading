@@ -2,12 +2,12 @@
 #!/bin/bash
 
 # Enhanced parameters
-DATA_DIR="/home/tourist/neu/QuantitativeTrading/data/high_price_stocks"
+DATA_DIR="/home/tourist/neu/QuantitativeTrading/data/dataset"
 # DATA_DIR="/home/tourist/neu/QuantitativeTrading/data/mockdata/stocks"
 TRAIN_START="2020-06-01"
 TRAIN_END="2021-01-01"
 TEST_START="2021-01-02"
-TEST_END="2021-12-01"
+TEST_END="2021-4-01"
 SEQ_LEN=25
 BATCH_SIZE=32
 EPOCHS=500
