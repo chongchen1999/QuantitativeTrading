@@ -151,7 +151,7 @@ class TransformerBlock(nn.Module):
         return x
 
 class StockTransformer(nn.Module):
-    def __init__(self, seq_len, num_stocks, num_features=5, d_model=128, num_heads=8, num_layers=6, dropout=0.1, early_stop=50):
+    def __init__(self, seq_len, num_stocks, num_features=5, d_model=128, num_heads=4, num_layers=4, dropout=0.1, early_stop = 25):
         super().__init__()
         self.feature_embedding = nn.Linear(num_features, d_model)
         self.pos_encoder = PositionalEncoding(d_model)
@@ -186,7 +186,7 @@ class StockTransformer(nn.Module):
         x = x.reshape(batch_size, num_stocks, -1)
         return self.fc(x).squeeze(-1)
     
-def train_model(model, train_loader, val_loader, epochs=2000, lr=0.001, device='cuda'):
+def train_model(model, train_loader, val_loader, epochs=1000, lr=0.001, early_stop = 25, device='cuda'):
     print("The address of model: " + str(id(model)))
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -194,7 +194,7 @@ def train_model(model, train_loader, val_loader, epochs=2000, lr=0.001, device='
     criterion = nn.MSELoss()
 
     best_val_loss = float('inf')
-    warmup_epochs = 200  # 10% of total epochs for warmup
+    warmup_epochs = 100  # 10% of total epochs for warmup
     counter = 0
     
     print(f"Training on {device}")
@@ -241,7 +241,7 @@ def train_model(model, train_loader, val_loader, epochs=2000, lr=0.001, device='
 
         current_lr = optimizer.param_groups[0]['lr']
         
-        if epoch % 2 == 0:
+        if epoch % 5 == 0:
             print(f'Epoch {epoch}, Train Loss: {avg_train_loss:.6f}, '
                   f'Val Loss: {avg_val_loss:.6f}, LR: {current_lr:.6e}')
             
@@ -252,7 +252,7 @@ def train_model(model, train_loader, val_loader, epochs=2000, lr=0.001, device='
             counter = 0
         else:
             counter += 1
-            if counter >= 30:
+            if counter >= early_stop:
                 print(f"Early stopping triggered at epoch {epoch + 1}")
                 break
 
@@ -260,94 +260,3 @@ def train_model(model, train_loader, val_loader, epochs=2000, lr=0.001, device='
         if current_lr < 1e-6:
             print(f"Learning rate too small ({current_lr:.6e}), stopping training")
             break
-
-    return model
-
-def plot_predictions(model, test_loader, stock_names, device='cuda'):
-    print("The address of model: " + str(id(model)))
-    model.eval()
-    predictions = []
-    actuals = []
-    
-    with torch.no_grad():
-        for batch_x, batch_y in test_loader:
-            batch_x = batch_x.to(device)
-            pred = model(batch_x)
-            predictions.append(pred.cpu().numpy())
-            actuals.append(batch_y.numpy())
-    
-    predictions = np.concatenate(predictions, axis=0)
-    actuals = np.concatenate(actuals, axis=0)
-    
-    # Make sure predictions and actuals have the correct shape
-    assert predictions.shape[1] == len(stock_names), f"Mismatch between predictions shape {predictions.shape} and number of stocks {len(stock_names)}"
-    
-    # 为每支股票创建单独的对比图
-    n_stocks = len(stock_names)
-    fig, axes = plt.subplots(n_stocks, 1, figsize=(15, 5*n_stocks))
-    
-    # Handle the case where there's only one stock
-    if n_stocks == 1:
-        axes = [axes]
-    
-    for i, (ax, stock_name) in enumerate(zip(axes, stock_names)):
-        ax.plot(predictions[:, i], label='Predicted', color='blue', alpha=0.7)
-        ax.plot(actuals[:, i], label='Actual', color='red', alpha=0.7)
-        ax.set_title(f'{stock_name} Return Rate Comparison')
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Return Rate')
-        ax.legend()
-        ax.grid(True)
-    plt.tight_layout()
-    plt.savefig('individual_stock_comparisons.png')
-    plt.close()
-    
-    # 创建所有股票实际收益率的对比图
-    plt.figure(figsize=(15, 8))
-    for i, stock_name in enumerate(stock_names):
-        plt.plot(actuals[:, i], label=stock_name)
-    plt.title('Actual Return Rates Comparison')
-    plt.xlabel('Time')
-    plt.ylabel('Return Rate')
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig('actual_returns_comparison.png')
-    plt.close()
-    
-    # 创建所有股票预测收益率的对比图
-    plt.figure(figsize=(15, 8))
-    for i, stock_name in enumerate(stock_names):
-        plt.plot(predictions[:, i], label=stock_name)
-    plt.title('Predicted Return Rates Comparison')
-    plt.xlabel('Time')
-    plt.ylabel('Return Rate')
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig('predicted_returns_comparison.png')
-    plt.close()
-    
-    # 计算并打印每支股票的预测准确度指标
-    print("\nPrediction Performance Metrics:")
-    for i, stock_name in enumerate(stock_names):
-        mse = np.mean((predictions[:, i] - actuals[:, i])**2)
-        mae = np.mean(np.abs(predictions[:, i] - actuals[:, i]))
-        correlation = np.corrcoef(predictions[:, i], actuals[:, i])[0, 1]
-        print(f"\n{stock_name}:")
-        print(f"MSE: {mse:.6f}")
-        print(f"MAE: {mae:.6f}")
-        print(f"Correlation: {correlation:.6f}")
-
-    # Final combined plot
-    plt.figure(figsize=(15, 10))
-    for i, stock_name in enumerate(stock_names):
-        plt.plot(predictions[:, i], label=f'{stock_name} (pred)')
-        plt.plot(actuals[:, i], label=f'{stock_name} (actual)')
-    
-    plt.legend()
-    plt.title('Predicted vs Actual Returns')
-    plt.xlabel('Time')
-    plt.ylabel('Return')
-    plt.savefig('combined_comparison.png')
-    plt.close()

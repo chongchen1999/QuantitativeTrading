@@ -1,78 +1,319 @@
-# main.py
-import argparse
-from torch.utils.data import DataLoader, random_split
-from model import StockDataset, StockTransformer, train_model, plot_predictions
+import torch
+import torch.nn as nn
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
 import glob
 import os
-import torch
+from model import StockDataset, StockTransformer, train_model
+from torch.utils.data import DataLoader
+import argparse
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-def parse_args():
-    parser = argparse.ArgumentParser(description='Stock Prediction with Enhanced Transformer')
-    parser.add_argument('--data_dir', type=str, required=True, help='Directory containing stock CSV files')
-    parser.add_argument('--train_start', type=str, required=True, help='Training start date (YYYY-MM-DD)')
-    parser.add_argument('--train_end', type=str, required=True, help='Training end date (YYYY-MM-DD)')
-    parser.add_argument('--test_start', type=str, required=True, help='Testing start date (YYYY-MM-DD)')
-    parser.add_argument('--test_end', type=str, required=True, help='Testing end date (YYYY-MM-DD)')
-    parser.add_argument('--seq_len', type=int, default=20, help='Sequence length for prediction')
-    parser.add_argument('--batch_size', type=int, default=32, help='Batch size')
-    parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
-    parser.add_argument('--lr', type=float, default=0.001, help='Learning rate')
-    parser.add_argument('--d_model', type=int, default=128, help='Model dimension')
-    parser.add_argument('--num_heads', type=int, default=8, help='Number of attention heads')
-    parser.add_argument('--num_layers', type=int, default=6, help='Number of transformer layers')
-    parser.add_argument('--dropout', type=float, default=0.1, help='Dropout rate')
-    parser.add_argument('--early_stop', type=int, default=50, help='Early stopping patience')
-    return parser.parse_args()
+def get_latest_model_path(checkpoints_dir):
+    """Get the path of the latest model from checkpoints directory."""
+    model_files = glob.glob(os.path.join(checkpoints_dir, "stock_model_last_update_*.pt"))
+    if not model_files:
+        return None
+    
+    # Extract dates from filenames and find the latest
+    dates = [datetime.strptime(f.split('_')[-1].split('.')[0], '%Y-%m-%d') for f in model_files]
+    latest_idx = np.argmax([d.timestamp() for d in dates])
+    return model_files[latest_idx]
 
-def main():
-    args = parse_args()
+def load_and_prepare_data(data_dir, start_date, end_date):
+    """Load and prepare stock data."""
+    csv_files = glob.glob(f"{data_dir}/*.csv")
+    stock_data = {}
     
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"Using device: {device}")
+    for file in csv_files:
+        ticker = os.path.basename(file).split('.')[0]
+        df = pd.read_csv(file)
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        df = df[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date)]
+        df = df.sort_values('timestamp')
+        
+        # Forward fill missing data
+        df = df.set_index('timestamp').asfreq('D').fillna(method='ffill')
+        df = df.reset_index()
+        
+        stock_data[ticker] = df
     
-    if not os.path.exists(args.data_dir):
-        raise FileNotFoundError(f"Data directory {args.data_dir} does not exist")
-    
-    csv_files = glob.glob(os.path.join(args.data_dir, "*.csv"))
-    if not csv_files:
-        raise FileNotFoundError(f"No CSV files found in {args.data_dir}")
-    
-    stock_names = [os.path.splitext(os.path.basename(f))[0] for f in csv_files]
-    print(f"Found {len(stock_names)} stocks: {', '.join(stock_names)}")
-    
-    print("Creating training dataset...")
-    train_dataset = StockDataset(args.data_dir, args.train_start, args.train_end, args.seq_len)
+    return stock_data
 
-    print("Creating testing dataset...")
-    test_dataset = StockDataset(args.data_dir, args.test_start, args.test_end, args.seq_len)
+def train_new_model(data_dir, train_start, train_end, model_params, device):
+    """Train a new model using specified date range."""
+    # Create datasets
+    train_size = int(0.8 * (train_end - train_start).days)
+    val_date = train_start + timedelta(days=train_size)
     
-    # Split training data into train and validation
-    train_size = int(0.8 * len(train_dataset))
-    val_size = len(train_dataset) - train_size
-    train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
+    train_dataset = StockDataset(data_dir, train_start, val_date, model_params['seq_len'])
+    val_dataset = StockDataset(data_dir, val_date, train_end, model_params['seq_len'])
     
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=model_params['batch_size'], shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=model_params['batch_size'])
     
-    num_stocks = len(stock_names)
     model = StockTransformer(
-        seq_len=args.seq_len,
-        num_stocks=num_stocks,
-        num_features=5,  # returns, volume_ma5, price_ma5, price_ma20, volatility
-        d_model=args.d_model,
-        num_heads=args.num_heads,
-        num_layers=args.num_layers,
-        dropout=args.dropout,
-        early_stop=args.early_stop
+        seq_len=model_params['seq_len'],
+        num_stocks=len(glob.glob(f"{data_dir}/*.csv")),
+        d_model=model_params['d_model'],
+        num_heads=model_params['num_heads'],
+        num_layers=model_params['num_layers'],
+        dropout=model_params['dropout']
     )
-    print(f"Model created with sequence length {args.seq_len} for {num_stocks} stocks")
     
-    print("Starting training...")
-    train_model(model, train_loader, val_loader, args.epochs, args.lr, device)
+    train_model(model, train_loader, val_loader, 
+                epochs=model_params['epochs'],
+                lr=model_params['learning_rate'],
+                device=device)
     
-    print("Generating predictions plot...")
-    plot_predictions(model, test_loader, stock_names, device)
+    return model
+
+def predict_returns(model, dataset, device):
+    """Predict returns for all stocks."""
+    model.eval()
+    with torch.no_grad():
+        X, _ = dataset[0]  # Get the latest data point
+        X = X.unsqueeze(0).to(device)  # Add batch dimension
+        predictions = model(X)
+        return predictions.cpu().numpy().squeeze()
+
+def select_stocks(predictions, tickers, softmax_threshold, max_stocks):
+    """Select stocks based on predictions and constraints."""
+    # Calculate softmax of predictions
+    exp_preds = np.exp(predictions)
+    softmax_values = exp_preds / exp_preds.sum()
+    
+    # Sort stocks by predicted returns
+    sorted_indices = np.argsort(predictions)[::-1]
+    selected_stocks = []
+    cumulative_softmax = 0
+    
+    for idx in sorted_indices:
+        if (predictions[idx] <= 0 or 
+            len(selected_stocks) >= max_stocks or 
+            cumulative_softmax >= softmax_threshold):
+            break
+            
+        selected_stocks.append({
+            'ticker': tickers[idx],
+            'predicted_return': predictions[idx],
+            'weight': softmax_values[idx]
+        })
+        cumulative_softmax += softmax_values[idx]
+    
+    return selected_stocks
+
+def plot_portfolio_value(history, initial_capital):
+    """Create a line plot of portfolio value over time."""
+    # Convert history to DataFrame
+    df = pd.DataFrame(history)
+    df['value'] = df['value'].astype(float)
+    
+    # Calculate daily returns and cumulative returns
+    df['daily_return'] = df['value'].pct_change()
+    df['cumulative_return'] = (1 + df['daily_return']).cumprod()
+    
+    # Create the plot
+    plt.figure(figsize=(15, 10))
+    
+    # Plot absolute portfolio value
+    plt.subplot(2, 1, 1)
+    sns.lineplot(data=df, x='date', y='value')
+    plt.title('Portfolio Value Over Time')
+    plt.ylabel('Portfolio Value ($)')
+    plt.grid(True)
+    
+    # Plot cumulative returns
+    plt.subplot(2, 1, 2)
+    sns.lineplot(data=df, x='date', y='cumulative_return')
+    plt.title('Cumulative Returns Over Time')
+    plt.ylabel('Cumulative Return (1 = Initial Investment)')
+    plt.grid(True)
+    
+    # Adjust layout and save
+    plt.tight_layout()
+    plt.savefig('portfolio_value.png')
+    plt.close()
+    
+    # Calculate and print performance metrics
+    total_return = (df['value'].iloc[-1] - initial_capital) / initial_capital * 100
+    annualized_return = ((1 + total_return/100) ** (365/len(df)) - 1) * 100
+    sharpe_ratio = np.sqrt(252) * df['daily_return'].mean() / df['daily_return'].std()
+    max_drawdown = (df['value'] / df['value'].cummax() - 1).min() * 100
+    
+    print("\nPerformance Metrics:")
+    print(f"Total Return: {total_return:.2f}%")
+    print(f"Annualized Return: {annualized_return:.2f}%")
+    print(f"Sharpe Ratio: {sharpe_ratio:.2f}")
+    print(f"Maximum Drawdown: {max_drawdown:.2f}%")
+
+def main(args):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    os.makedirs(args.checkpoints_dir, exist_ok=True)
+    
+    # Model parameters
+    model_params = {
+        'seq_len': args.seq_len,
+        'batch_size': args.batch_size,
+        'd_model': args.d_model,
+        'num_heads': args.num_heads,
+        'num_layers': args.num_layers,
+        'dropout': args.dropout,
+        'epochs': args.epochs,
+        'learning_rate': args.learning_rate
+    }
+    
+    # Initialize portfolio
+    portfolio = {
+        'cash': args.initial_capital,
+        'positions': {},
+        'history': []
+    }
+    
+    # Trading simulation
+    current_date = pd.to_datetime(args.start_date)
+    end_date = pd.to_datetime(args.end_date)
+    last_model_date = None
+    
+    while current_date <= end_date:
+        print(f"\nProcessing date: {current_date.date()}")
+        
+        # Check if we need to train a new model
+        latest_model_path = get_latest_model_path(args.checkpoints_dir)
+        if latest_model_path is None or (
+            last_model_date is not None and 
+            (current_date - last_model_date).days >= args.update_interval
+        ):
+            print("Training new model...")
+            train_start = current_date - timedelta(days=args.training_window)
+            model = train_new_model(
+                args.data_dir, 
+                train_start, 
+                current_date,
+                model_params,
+                device
+            )
+            model_path = os.path.join(
+                args.checkpoints_dir,
+                f"stock_model_last_update_{current_date.date()}.pt"
+            )
+            torch.save(model.state_dict(), model_path)
+            last_model_date = current_date
+        else:
+            model = StockTransformer(
+                seq_len=model_params['seq_len'],
+                num_stocks=len(glob.glob(f"{args.data_dir}/*.csv")),
+                d_model=model_params['d_model'],
+                num_heads=model_params['num_heads'],
+                num_layers=model_params['num_layers'],
+                dropout=model_params['dropout']
+            )
+            model.load_state_dict(torch.load(latest_model_path))
+            model = model.to(device)
+        
+        # Prepare dataset for current date
+        dataset = StockDataset(
+            args.data_dir,
+            current_date - timedelta(days=model_params['seq_len']),
+            current_date,
+            model_params['seq_len']
+        )
+        
+        # Get predictions
+        predictions = predict_returns(model, dataset, device)
+        
+        # Select stocks
+        tickers = [os.path.basename(f).split('.')[0] for f in glob.glob(f"{args.data_dir}/*.csv")]
+        selected_stocks = select_stocks(
+            predictions,
+            tickers,
+            args.softmax_threshold,
+            args.max_stocks
+        )
+        
+        # Update portfolio
+        # Load current day's stock data
+        stock_data = load_and_prepare_data(args.data_dir, current_date, current_date + timedelta(days=1))
+        
+        # First, sell all current positions
+        total_value = portfolio['cash']
+        for ticker, shares in portfolio['positions'].items():
+            if ticker in stock_data:
+                sell_price = stock_data[ticker]['open'].iloc[0]
+                total_value += shares * sell_price
+        
+        portfolio['cash'] = total_value
+        portfolio['positions'] = {}
+        
+        # If we have selected stocks with positive predicted returns
+        if selected_stocks:
+            # Calculate position sizes based on weights
+            for stock in selected_stocks:
+                ticker = stock['ticker']
+                if ticker in stock_data:
+                    weight = stock['weight']
+                    stock_price = stock_data[ticker]['open'].iloc[0]
+                    
+                    # Calculate number of shares to buy
+                    position_value = total_value * weight
+                    shares = int(position_value / stock_price)
+                    
+                    if shares > 0:
+                        cost = shares * stock_price
+                        if cost <= portfolio['cash']:
+                            portfolio['positions'][ticker] = shares
+                            portfolio['cash'] -= cost
+        
+        # Calculate total portfolio value for this day
+        portfolio_value = portfolio['cash']
+        for ticker, shares in portfolio['positions'].items():
+            if ticker in stock_data:
+                close_price = stock_data[ticker]['close'].iloc[0]
+                portfolio_value += shares * close_price
+        
+        # Move to next trading day
+        current_date += timedelta(days=1)
+        
+        # Record portfolio value
+        portfolio['history'].append({
+            'date': current_date,
+            'value': portfolio['cash'] + sum(portfolio['positions'].values())
+        })
+    
+    # Save final results
+    results_df = pd.DataFrame(portfolio['history'])
+    results_df.to_csv('trading_results.csv', index=False)
+    
+    # Plot portfolio value and performance metrics
+    plot_portfolio_value(portfolio['history'], args.initial_capital)
+    
+    print("\nTrading simulation completed. Results saved to trading_results.csv")
+    print("Portfolio value visualization saved as portfolio_value.png")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description='Stock Trading Simulation')
+    parser.add_argument('--data_dir', type=str, required=True, help='Directory containing stock data')
+    parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='Directory for model checkpoints')
+    parser.add_argument('--start_date', type=str, required=True, help='Start date (YYYY-MM-DD)')
+    parser.add_argument('--end_date', type=str, required=True, help='End date (YYYY-MM-DD)')
+    parser.add_argument('--training_window', type=int, default=90, help='Training window in days')
+    parser.add_argument('--update_interval', type=int, default=30, help='Model update interval in days')
+    parser.add_argument('--softmax_threshold', type=float, default=0.8, help='Cumulative softmax threshold')
+    parser.add_argument('--max_stocks', type=int, default=20, help='Maximum number of stocks to hold')
+    parser.add_argument('--initial_capital', type=float, default=1000000, help='Initial capital')
+    
+    # Model parameters
+    parser.add_argument('--seq_len', type=int, default=20, help='Sequence length')
+    parser.add_argument('--batch_size', type=int, default=32, help='Batch size')
+    parser.add_argument('--d_model', type=int, default=128, help='Model dimension')
+    parser.add_argument('--num_heads', type=int, default=4, help='Number of attention heads')
+    parser.add_argument('--num_layers', type=int, default=4, help='Number of transformer layers')
+    parser.add_argument('--dropout', type=float, default=0.1, help='Dropout rate')
+    parser.add_argument('--epochs', type=int, default=100, help='Number of training epochs')
+    parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate')
+    
+    args = parser.parse_args()
+    main(args)
