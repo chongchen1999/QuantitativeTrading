@@ -33,6 +33,11 @@ def load_and_prepare_data(data_dir, start_date, end_date):
         df = pd.read_csv(file)
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         df = df[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date)]
+        
+        # Skip empty dataframes
+        if df.empty:
+            continue
+            
         df = df.sort_values('timestamp')
         
         # Forward fill missing data
@@ -42,6 +47,20 @@ def load_and_prepare_data(data_dir, start_date, end_date):
         stock_data[ticker] = df
     
     return stock_data
+
+def get_next_trading_day(data_dir, current_date, max_look_ahead=5):
+    """Find the next day with trading data within a specified range."""
+    for days_ahead in range(1, max_look_ahead + 1):
+        next_date = current_date + timedelta(days=days_ahead)
+        # Try to load data for this date
+        data = load_and_prepare_data(data_dir, next_date, next_date)
+        
+        # If we found data for any stock, consider it a trading day
+        if data:
+            return next_date
+    
+    # If no trading day found within range, just return next calendar day
+    return current_date + timedelta(days=1)
 
 def train_new_model(data_dir, train_start, train_end, model_params, device):
     """Train a new model using specified date range."""
@@ -184,6 +203,29 @@ def main(args):
     while current_date <= end_date:
         print(f"\nProcessing date: {current_date.date()}")
         
+        # Check if this is a trading day by looking for data
+        day_data = load_and_prepare_data(args.data_dir, current_date, current_date)
+        
+        if not day_data:
+            print(f"No trading data available for {current_date.date()}. Skipping to next day.")
+            # Record portfolio value (unchanged since no trades)
+            if portfolio['history']:
+                # Use the last known value
+                portfolio['history'].append({
+                    'date': current_date,
+                    'value': portfolio['history'][-1]['value']
+                })
+            else:
+                # First day, use initial capital
+                portfolio['history'].append({
+                    'date': current_date,
+                    'value': args.initial_capital
+                })
+                
+            # Move to next calendar day
+            current_date += timedelta(days=1)
+            continue
+        
         # Check if we need to train a new model
         latest_model_path = get_latest_model_path(args.checkpoints_dir)
         if latest_model_path is None or (
@@ -239,18 +281,18 @@ def main(args):
         )
         
         # Update portfolio
-        # Load current day's stock data
-        stock_data = load_and_prepare_data(args.data_dir, current_date, current_date + timedelta(days=1))
-
-        print("\n".join([f"Ticker: {ticker} | Rows: {len(df)} | Range: {df['timestamp'].min().date()} - {df['timestamp'].max().date()} | Last Close: {df['close'].iloc[-1]:.2f}" for ticker, df in stock_data.items()]))
-        return
+        # Load current day's stock data - use the data we already loaded
+        stock_data = day_data
         
         # First, sell all current positions
         total_value = portfolio['cash']
         for ticker, shares in portfolio['positions'].items():
-            if ticker in stock_data:
+            if ticker in stock_data and not stock_data[ticker].empty:
                 sell_price = stock_data[ticker]['open'].iloc[0]
                 total_value += shares * sell_price
+                print(f"Sold {shares} shares of {ticker} at ${sell_price:.2f}")
+            else:
+                print(f"Warning: Cannot sell {ticker} - no data available")
         
         portfolio['cash'] = total_value
         portfolio['positions'] = {}
@@ -260,7 +302,7 @@ def main(args):
             # Calculate position sizes based on weights
             for stock in selected_stocks:
                 ticker = stock['ticker']
-                if ticker in stock_data:
+                if ticker in stock_data and not stock_data[ticker].empty:
                     weight = stock['weight']
                     stock_price = stock_data[ticker]['open'].iloc[0]
                     
@@ -273,22 +315,37 @@ def main(args):
                         if cost <= portfolio['cash']:
                             portfolio['positions'][ticker] = shares
                             portfolio['cash'] -= cost
+                            print(f"Bought {shares} shares of {ticker} at ${stock_price:.2f}")
         
         # Calculate total portfolio value for this day
         portfolio_value = portfolio['cash']
         for ticker, shares in portfolio['positions'].items():
-            if ticker in stock_data:
+            if ticker in stock_data and not stock_data[ticker].empty:
                 close_price = stock_data[ticker]['close'].iloc[0]
                 portfolio_value += shares * close_price
-        
-        # Move to next trading day
-        current_date += timedelta(days=1)
+            else:
+                print(f"Warning: Cannot value {ticker} - no data available")
         
         # Record portfolio value
         portfolio['history'].append({
             'date': current_date,
-            'value': portfolio['cash'] + sum(portfolio['positions'].values())
+            'value': portfolio_value
         })
+        
+        # Find and move to next trading day
+        next_date = get_next_trading_day(args.data_dir, current_date)
+        print(f"Moving to next trading day: {next_date.date()}")
+        
+        # Fill in portfolio values for skipped non-trading days
+        temp_date = current_date + timedelta(days=1)
+        while temp_date < next_date:
+            portfolio['history'].append({
+                'date': temp_date,
+                'value': portfolio_value  # Use same value as current trading day
+            })
+            temp_date += timedelta(days=1)
+            
+        current_date = next_date
     
     # Save final results
     results_df = pd.DataFrame(portfolio['history'])

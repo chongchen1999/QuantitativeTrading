@@ -2,98 +2,193 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from datetime import datetime
+import seaborn as sns
+from datetime import datetime, timedelta
+import glob
+import argparse
 
-# 读取数据文件夹中的所有CSV文件
-data_path = '/home/tourist/neu/QuantitativeTrading/data/dataset'
-all_files = os.listdir(data_path)
-csv_files = [f for f in all_files if f.endswith('.csv')]
-
-# 初始设置
-initial_total = 1000000  # 初始总资金
-per_stock_investment = 5000  # 每支股票投资金额
-start_date = '2020-09-01'
-end_date = '2023-09-01'
-
-# 存储每支股票的每日价值
-all_daily_values = []
-
-# 处理每个文件
-for csv_file in csv_files:
-    try:
-        # 读取CSV文件
-        df = pd.read_csv(os.path.join(data_path, csv_file))
-        
-        # 转换时间戳
+def load_and_prepare_data(data_dir, start_date, end_date):
+    """Load and prepare stock data."""
+    csv_files = glob.glob(f"{data_dir}/*.csv")
+    stock_data = {}
+    
+    for file in csv_files:
+        ticker = os.path.basename(file).split('.')[0]
+        df = pd.read_csv(file)
         df['timestamp'] = pd.to_datetime(df['timestamp'])
+        df = df[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date)]
         
-        # 过滤时间范围
-        mask = (df['timestamp'] >= start_date) & (df['timestamp'] <= end_date)
-        df = df[mask]
-        
-        if len(df) == 0:
+        # Skip empty dataframes
+        if df.empty:
             continue
             
-        # 计算初始股数（用收盘价）
-        initial_price = df.iloc[0]['close']
-        shares = per_stock_investment / initial_price
+        df = df.sort_values('timestamp')
         
-        # 计算每日价值
-        df['daily_value'] = shares * df['close']
+        # Forward fill missing data
+        df = df.set_index('timestamp').asfreq('D').ffill()
+        df = df.reset_index()
         
-        # 只保留需要的列
-        value_series = df[['timestamp', 'daily_value']].copy()
-        all_daily_values.append(value_series)
-        
-    except Exception as e:
-        print(f"Error processing {csv_file}: {str(e)}")
+        stock_data[ticker] = df
+    
+    return stock_data
 
-# 合并所有股票的每日价值
-if all_daily_values:
-    # 合并所有数据
-    combined_values = pd.concat(all_daily_values)
+def plot_portfolio_value(history, initial_capital):
+    """Create a line plot of portfolio value over time."""
+    # Convert history to DataFrame
+    df = pd.DataFrame(history)
+    df['value'] = df['value'].astype(float)
     
-    # 按日期分组并求和
-    portfolio_value = combined_values.groupby('timestamp')['daily_value'].sum().reset_index()
-    portfolio_value = portfolio_value.sort_values('timestamp')
+    # Calculate daily returns and cumulative returns
+    df['daily_return'] = df['value'].pct_change()
+    df['cumulative_return'] = (1 + df['daily_return']).cumprod()
     
-    # 计算一些基本统计信息
-    start_value = portfolio_value['daily_value'].iloc[0]
-    end_value = portfolio_value['daily_value'].iloc[-1]
-    total_return = ((end_value / start_value) - 1) * 100
+    # Create the plot
+    plt.figure(figsize=(15, 10))
     
-    print("\nPortfolio Statistics:")
-    print(f"Start Value: ${start_value:,.2f}")
-    print(f"End Value: ${end_value:,.2f}")
-    print(f"Total Return: {total_return:.2f}%")
+    # Plot absolute portfolio value
+    plt.subplot(2, 1, 1)
+    sns.lineplot(data=df, x='date', y='value')
+    plt.title('Equal-Weight Portfolio Value Over Time')
+    plt.ylabel('Portfolio Value ($)')
+    plt.grid(True)
     
-    # 创建收益曲线图
-    plt.figure(figsize=(15, 8))
-    plt.plot(portfolio_value['timestamp'], portfolio_value['daily_value'], 
-             linewidth=2, color='blue')
+    # Plot cumulative returns
+    plt.subplot(2, 1, 2)
+    sns.lineplot(data=df, x='date', y='cumulative_return')
+    plt.title('Cumulative Returns Over Time')
+    plt.ylabel('Cumulative Return (1 = Initial Investment)')
+    plt.grid(True)
     
-    # 设置图表标题和标签
-    plt.title('Portfolio Value Over Time (2020-2023)', fontsize=14, pad=20)
-    plt.xlabel('Date', fontsize=12)
-    plt.ylabel('Portfolio Value ($)', fontsize=12)
-    
-    # 格式化y轴为货币格式
-    plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'${x:,.0f}'))
-    
-    # 设置网格
-    plt.grid(True, linestyle='--', alpha=0.7)
-    
-    # 旋转x轴日期标签以防重叠
-    plt.xticks(rotation=45)
-    
-    # 调整布局以确保所有元素可见
+    # Adjust layout and save
     plt.tight_layout()
+    plt.savefig('benchmark_portfolio_value.png')
+    plt.close()
     
-    # 保存图表
-    plt.savefig('portfolio_value.png', dpi=300, bbox_inches='tight')
+    # Calculate and print performance metrics
+    total_return = (df['value'].iloc[-1] - initial_capital) / initial_capital * 100
+    annualized_return = ((1 + total_return/100) ** (365/len(df)) - 1) * 100
+    sharpe_ratio = np.sqrt(252) * df['daily_return'].mean() / df['daily_return'].std()
+    max_drawdown = (df['value'] / df['value'].cummax() - 1).min() * 100
     
-    # 显示图表
-    plt.show()
+    print("\nBenchmark Performance Metrics:")
+    print(f"Total Return: {total_return:.2f}%")
+    print(f"Annualized Return: {annualized_return:.2f}%")
+    print(f"Sharpe Ratio: {sharpe_ratio:.2f}")
+    print(f"Maximum Drawdown: {max_drawdown:.2f}%")
+
+def main(args):
+    # Process dates
+    start_date = pd.to_datetime(args.start_date)
+    end_date = pd.to_datetime(args.end_date)
     
-else:
-    print("No data was processed successfully")
+    print(f"Running benchmark from {start_date.date()} to {end_date.date()}")
+    
+    # Load all stock data
+    stock_data = load_and_prepare_data(args.data_dir, start_date, end_date)
+    
+    if not stock_data:
+        print("No stock data available for the specified date range.")
+        return
+    
+    # Get unique trading days across all stocks
+    all_dates = set()
+    for ticker, df in stock_data.items():
+        all_dates.update(df['timestamp'].dt.date)
+    
+    all_dates = sorted(all_dates)
+    
+    # Initialize portfolio
+    initial_capital = args.initial_capital
+    num_stocks = len(stock_data)
+    
+    if num_stocks == 0:
+        print("No stocks available for the specified date range.")
+        return
+    
+    # Equal weight allocation
+    per_stock_capital = initial_capital / num_stocks
+    
+    # Calculate initial positions
+    portfolio = {
+        'cash': 0,
+        'positions': {},
+        'history': []
+    }
+    
+    # Get first trading day data
+    first_day = all_dates[0]
+    first_day_data = {}
+    
+    for ticker, df in stock_data.items():
+        df_day = df[df['timestamp'].dt.date == first_day]
+        if not df_day.empty:
+            first_day_data[ticker] = df_day.iloc[0]
+    
+    # Buy initial positions
+    total_invested = 0
+    for ticker, data in first_day_data.items():
+        price = data['open']
+        if price > 0:
+            shares = int(per_stock_capital / price)
+            cost = shares * price
+            portfolio['positions'][ticker] = shares
+            total_invested += cost
+    
+    # Set remaining cash
+    portfolio['cash'] = initial_capital - total_invested
+    
+    # Track portfolio value over time
+    current_date = start_date
+    
+    while current_date <= end_date:
+        # Check if this is a trading day
+        trading_day = current_date.date() in all_dates
+        
+        if trading_day:
+            day_data = {}
+            for ticker, df in stock_data.items():
+                df_day = df[df['timestamp'].dt.date == current_date.date()]
+                if not df_day.empty:
+                    day_data[ticker] = df_day.iloc[0]
+            
+            # Calculate portfolio value for this day
+            portfolio_value = portfolio['cash']
+            for ticker, shares in portfolio['positions'].items():
+                if ticker in day_data:
+                    close_price = day_data[ticker]['close']
+                    portfolio_value += shares * close_price
+        else:
+            # Non-trading day, use previous value
+            if portfolio['history']:
+                portfolio_value = portfolio['history'][-1]['value']
+            else:
+                portfolio_value = initial_capital
+        
+        # Record portfolio value
+        portfolio['history'].append({
+            'date': current_date,
+            'value': portfolio_value
+        })
+        
+        # Move to next day
+        current_date += timedelta(days=1)
+    
+    # Save final results
+    results_df = pd.DataFrame(portfolio['history'])
+    results_df.to_csv('benchmark_results.csv', index=False)
+    
+    # Plot portfolio value and performance metrics
+    plot_portfolio_value(portfolio['history'], initial_capital)
+    
+    print("\nBenchmark simulation completed. Results saved to benchmark_results.csv")
+    print("Portfolio value visualization saved as benchmark_portfolio_value.png")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Equal-Weight Benchmark Portfolio Simulation')
+    parser.add_argument('--data_dir', type=str, required=True, help='Directory containing stock data')
+    parser.add_argument('--start_date', type=str, required=True, help='Start date (YYYY-MM-DD)')
+    parser.add_argument('--end_date', type=str, required=True, help='End date (YYYY-MM-DD)')
+    parser.add_argument('--initial_capital', type=float, default=1000000, help='Initial capital')
+    
+    args = parser.parse_args()
+    main(args)

@@ -197,7 +197,6 @@ class StockTransformer(nn.Module):
         return self.fc(x).squeeze(-1)
 
 def train_model(model, train_loader, val_loader, epochs=1000, lr=0.001, early_stop=25, device='cuda'):
-    print("The address of model: " + str(id(model)))
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10)
