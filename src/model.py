@@ -1,4 +1,3 @@
-# model.py
 import torch
 import torch.nn as nn
 import pandas as pd
@@ -36,30 +35,40 @@ class StockDataset(Dataset):
         start_date = pd.to_datetime(start_date)
         end_date = pd.to_datetime(end_date)
         
+        # Create a date range for all possible trading days
+        all_dates = pd.date_range(start=start_date, end=end_date, freq='B')
+        
         for file in csv_files:
             df = pd.read_csv(file)
             df['timestamp'] = pd.to_datetime(df['timestamp'])
             df = df[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date)]
-            df = df.sort_values('timestamp')
             
-            # Calculate multiple features
+            # Calculate log returns
             df['returns'] = np.log(df['close'] / df['close'].shift(1))
-            df['volume_ma5'] = df['volume'].rolling(window=5).mean()
-            df['price_ma5'] = df['close'].rolling(window=5).mean()
-            df['price_ma20'] = df['close'].rolling(window=20).mean()
-            df['volatility'] = df['returns'].rolling(window=20).std()
             
-            # Create feature matrix
-            features = ['returns', 'volume_ma5', 'price_ma5', 'price_ma20', 'volatility']
-            df = df.dropna()
+            # Create a template DataFrame with all dates
+            template = pd.DataFrame(index=all_dates)
+            template.index.name = 'timestamp'
             
-            # Normalize features
+            # Merge with actual data and forward fill missing values
+            df.set_index('timestamp', inplace=True)
+            df = template.join(df)
+            df['returns'] = df['returns'].ffill()
+            
+            # Reset index to get timestamp as column
+            df.reset_index(inplace=True)
+            
+            # Normalize returns
             scaler = StandardScaler()
-            df[features] = scaler.fit_transform(df[features])
+            df['returns'] = scaler.fit_transform(df[['returns']])
             self.scalers[file] = scaler
+            
+            # Drop any remaining NaN values (should only be the first day's return)
+            df = df.dropna()
             
             stock_data.append(df)
         
+        # Get common dates across all stocks
         common_dates = None
         for df in stock_data:
             dates = set(df['timestamp'])
@@ -74,17 +83,18 @@ class StockDataset(Dataset):
         if len(common_dates) < seq_len + 1:
             raise ValueError(f"Not enough common trading days ({len(common_dates)}) for sequence length {seq_len}")
         
+        # Create sequences
         for t in range(len(common_dates) - seq_len - 1):
             current_dates = common_dates[t:t+seq_len]
             next_date = common_dates[t+seq_len]
             
-            X = np.zeros((len(stock_data), seq_len, len(features)))  # Modified for multiple features
+            X = np.zeros((len(stock_data), seq_len, 1))  # Only using returns
             y = np.zeros(len(stock_data))
             
             for i, df in enumerate(stock_data):
-                window_data = df[df['timestamp'].isin(current_dates)][features].values
+                window_data = df[df['timestamp'].isin(current_dates)]['returns'].values
                 if len(window_data) == seq_len:
-                    X[i] = window_data
+                    X[i, :, 0] = window_data
                     next_return = df[df['timestamp'] == next_date]['returns'].values
                     if len(next_return) > 0:
                         y[i] = next_return[0]
@@ -151,7 +161,7 @@ class TransformerBlock(nn.Module):
         return x
 
 class StockTransformer(nn.Module):
-    def __init__(self, seq_len, num_stocks, num_features=5, d_model=128, num_heads=4, num_layers=4, dropout=0.1, early_stop = 25):
+    def __init__(self, seq_len, num_stocks, num_features=1, d_model=128, num_heads=4, num_layers=4, dropout=0.1, early_stop=25):
         super().__init__()
         self.feature_embedding = nn.Linear(num_features, d_model)
         self.pos_encoder = PositionalEncoding(d_model)
@@ -185,8 +195,8 @@ class StockTransformer(nn.Module):
         # Reshape and predict
         x = x.reshape(batch_size, num_stocks, -1)
         return self.fc(x).squeeze(-1)
-    
-def train_model(model, train_loader, val_loader, epochs=1000, lr=0.001, early_stop = 25, device='cuda'):
+
+def train_model(model, train_loader, val_loader, epochs=1000, lr=0.001, early_stop=25, device='cuda'):
     print("The address of model: " + str(id(model)))
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)

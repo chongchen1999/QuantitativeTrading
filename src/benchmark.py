@@ -12,8 +12,8 @@ csv_files = [f for f in all_files if f.endswith('.csv')]
 # 初始设置
 initial_total = 1000000  # 初始总资金
 per_stock_investment = 5000  # 每支股票投资金额
-start_date = '2020-06-01'
-end_date = '2023-06-01'
+start_date = '2020-09-01'
+end_date = '2023-09-01'
 
 # 存储每支股票的每日价值
 all_daily_values = []

@@ -36,7 +36,7 @@ def load_and_prepare_data(data_dir, start_date, end_date):
         df = df.sort_values('timestamp')
         
         # Forward fill missing data
-        df = df.set_index('timestamp').asfreq('D').fillna(method='ffill')
+        df = df.set_index('timestamp').asfreq('D').ffill()
         df = df.reset_index()
         
         stock_data[ticker] = df
@@ -73,6 +73,9 @@ def train_new_model(data_dir, train_start, train_end, model_params, device):
 
 def predict_returns(model, dataset, device):
     """Predict returns for all stocks."""
+    if len(dataset) == 0:
+        raise ValueError("Dataset is empty. Please check data availability for the specified date range.")
+        
     model.eval()
     with torch.no_grad():
         X, _ = dataset[0]  # Get the latest data point
@@ -211,13 +214,14 @@ def main(args):
                 num_layers=model_params['num_layers'],
                 dropout=model_params['dropout']
             )
-            model.load_state_dict(torch.load(latest_model_path))
+            model.load_state_dict(torch.load(latest_model_path, weights_only=True))
             model = model.to(device)
         
         # Prepare dataset for current date
+        dataset_start_date = current_date - timedelta(days=model_params['seq_len'] * 2)
         dataset = StockDataset(
             args.data_dir,
-            current_date - timedelta(days=model_params['seq_len']),
+            dataset_start_date,
             current_date,
             model_params['seq_len']
         )
@@ -237,6 +241,9 @@ def main(args):
         # Update portfolio
         # Load current day's stock data
         stock_data = load_and_prepare_data(args.data_dir, current_date, current_date + timedelta(days=1))
+
+        print("\n".join([f"Ticker: {ticker} | Rows: {len(df)} | Range: {df['timestamp'].min().date()} - {df['timestamp'].max().date()} | Last Close: {df['close'].iloc[-1]:.2f}" for ticker, df in stock_data.items()]))
+        return
         
         # First, sell all current positions
         total_value = portfolio['cash']
