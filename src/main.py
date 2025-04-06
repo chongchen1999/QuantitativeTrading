@@ -258,6 +258,7 @@ def main(args):
             )
             model.load_state_dict(torch.load(latest_model_path, weights_only=True))
             model = model.to(device)
+            print(f"Loaded existing model from {latest_model_path}")
         
         # Prepare dataset for current date
         dataset_start_date = current_date - timedelta(days=model_params['seq_len'] * 2)
@@ -297,6 +298,8 @@ def main(args):
         portfolio['cash'] = total_value
         portfolio['positions'] = {}
         
+        total_weight = sum(stock['weight'] for stock in selected_stocks)
+
         # If we have selected stocks with positive predicted returns
         if selected_stocks:
             # Calculate position sizes based on weights
@@ -307,7 +310,7 @@ def main(args):
                     stock_price = stock_data[ticker]['open'].iloc[0]
                     
                     # Calculate number of shares to buy
-                    position_value = total_value * weight
+                    position_value = total_value * (weight / total_weight)
                     shares = int(position_value / stock_price)
                     
                     if shares > 0:
@@ -346,6 +349,7 @@ def main(args):
             temp_date += timedelta(days=1)
             
         current_date = next_date
+        print(f"Total portfolio value: ${total_value:.2f}")
     
     # Save final results
     results_df = pd.DataFrame(portfolio['history'])

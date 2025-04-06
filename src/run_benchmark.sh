@@ -3,7 +3,7 @@
 # Define default parameters
 DATA_DIR="/home/tourist/neu/QuantitativeTrading/data/dataset"
 START_DATE="2020-09-01"
-END_DATE="2020-12-30"
+END_DATE="2023-09-01"
 INITIAL_CAPITAL=1000000
 
 # Parse command line arguments

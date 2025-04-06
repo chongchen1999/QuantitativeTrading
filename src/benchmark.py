@@ -48,7 +48,7 @@ def plot_portfolio_value(history, initial_capital):
     # Plot absolute portfolio value
     plt.subplot(2, 1, 1)
     sns.lineplot(data=df, x='date', y='value')
-    plt.title('Equal-Weight Portfolio Value Over Time')
+    plt.title('Daily Rebalanced Equal-Weight Portfolio Value Over Time')
     plt.ylabel('Portfolio Value ($)')
     plt.grid(True)
     
@@ -61,7 +61,7 @@ def plot_portfolio_value(history, initial_capital):
     
     # Adjust layout and save
     plt.tight_layout()
-    plt.savefig('benchmark_portfolio_value.png')
+    plt.savefig('daily_rebalanced_portfolio_value.png')
     plt.close()
     
     # Calculate and print performance metrics
@@ -70,7 +70,7 @@ def plot_portfolio_value(history, initial_capital):
     sharpe_ratio = np.sqrt(252) * df['daily_return'].mean() / df['daily_return'].std()
     max_drawdown = (df['value'] / df['value'].cummax() - 1).min() * 100
     
-    print("\nBenchmark Performance Metrics:")
+    print("\nDaily Rebalanced Strategy Performance Metrics:")
     print(f"Total Return: {total_return:.2f}%")
     print(f"Annualized Return: {annualized_return:.2f}%")
     print(f"Sharpe Ratio: {sharpe_ratio:.2f}")
@@ -81,7 +81,7 @@ def main(args):
     start_date = pd.to_datetime(args.start_date)
     end_date = pd.to_datetime(args.end_date)
     
-    print(f"Running benchmark from {start_date.date()} to {end_date.date()}")
+    print(f"Running daily rebalanced portfolio from {start_date.date()} to {end_date.date()}")
     
     # Load all stock data
     stock_data = load_and_prepare_data(args.data_dir, start_date, end_date)
@@ -99,92 +99,115 @@ def main(args):
     
     # Initialize portfolio
     initial_capital = args.initial_capital
-    num_stocks = len(stock_data)
     
-    if num_stocks == 0:
-        print("No stocks available for the specified date range.")
-        return
-    
-    # Equal weight allocation
-    per_stock_capital = initial_capital / num_stocks
-    
-    # Calculate initial positions
+    # Portfolio tracking
     portfolio = {
-        'cash': 0,
+        'cash': initial_capital,
         'positions': {},
         'history': []
     }
     
-    # Get first trading day data
-    first_day = all_dates[0]
-    first_day_data = {}
-    
-    for ticker, df in stock_data.items():
-        df_day = df[df['timestamp'].dt.date == first_day]
-        if not df_day.empty:
-            first_day_data[ticker] = df_day.iloc[0]
-    
-    # Buy initial positions
-    total_invested = 0
-    for ticker, data in first_day_data.items():
-        price = data['open']
-        if price > 0:
-            shares = int(per_stock_capital / price)
-            cost = shares * price
-            portfolio['positions'][ticker] = shares
-            total_invested += cost
-    
-    # Set remaining cash
-    portfolio['cash'] = initial_capital - total_invested
-    
-    # Track portfolio value over time
-    current_date = start_date
-    
-    while current_date <= end_date:
-        # Check if this is a trading day
-        trading_day = current_date.date() in all_dates
+    # Simulate trading for each day
+    for current_date in all_dates:
+        current_datetime = pd.Timestamp(current_date)
         
-        if trading_day:
-            day_data = {}
-            for ticker, df in stock_data.items():
-                df_day = df[df['timestamp'].dt.date == current_date.date()]
-                if not df_day.empty:
-                    day_data[ticker] = df_day.iloc[0]
+        # Get data for current trading day
+        day_data = {}
+        for ticker, df in stock_data.items():
+            df_day = df[df['timestamp'].dt.date == current_date]
+            if not df_day.empty:
+                day_data[ticker] = df_day.iloc[0]
+        
+        # Skip if no data for this day
+        if not day_data:
+            continue
             
-            # Calculate portfolio value for this day
-            portfolio_value = portfolio['cash']
-            for ticker, shares in portfolio['positions'].items():
-                if ticker in day_data:
-                    close_price = day_data[ticker]['close']
-                    portfolio_value += shares * close_price
-        else:
-            # Non-trading day, use previous value
-            if portfolio['history']:
-                portfolio_value = portfolio['history'][-1]['value']
-            else:
-                portfolio_value = initial_capital
+        # Calculate current portfolio value
+        portfolio_value = portfolio['cash']
+        for ticker, shares in portfolio['positions'].items():
+            if ticker in day_data:
+                open_price = day_data[ticker]['open']
+                portfolio_value += shares * open_price
+        
+        # Output how much money we have today
+        print(f"Date: {current_date}, Portfolio Value: ${portfolio_value:.2f}")
+        
+        # Sell all current positions to reset
+        for ticker, shares in list(portfolio['positions'].items()):
+            if ticker in day_data:
+                open_price = day_data[ticker]['open']
+                portfolio['cash'] += shares * open_price
+                portfolio['positions'][ticker] = 0
+        
+        # Distribute money equally across available stocks
+        available_stocks = list(day_data.keys())
+        num_stocks = len(available_stocks)
+        
+        if num_stocks == 0:
+            continue
+            
+        # Allocate cash equally
+        per_stock_capital = portfolio['cash'] / num_stocks
+        
+        # Buy new positions
+        total_invested = 0
+        for ticker in available_stocks:
+            price = day_data[ticker]['open']
+            if price > 0:
+                shares = int(per_stock_capital / price)
+                cost = shares * price
+                portfolio['positions'][ticker] = shares
+                total_invested += cost
+        
+        # Update remaining cash
+        portfolio['cash'] = portfolio_value - total_invested
+        
+        # Calculate end-of-day portfolio value
+        end_day_value = portfolio['cash']
+        for ticker, shares in portfolio['positions'].items():
+            if ticker in day_data:
+                close_price = day_data[ticker]['close']
+                end_day_value += shares * close_price
         
         # Record portfolio value
         portfolio['history'].append({
-            'date': current_date,
-            'value': portfolio_value
+            'date': current_datetime,
+            'value': end_day_value
         })
-        
-        # Move to next day
+    
+    # Fill in non-trading days for continuous visualization
+    all_days = []
+    current_date = start_date
+    while current_date <= end_date:
+        all_days.append(current_date)
         current_date += timedelta(days=1)
     
-    # Save final results
-    results_df = pd.DataFrame(portfolio['history'])
-    results_df.to_csv('benchmark_results.csv', index=False)
+    # Create a continuous timeline including non-trading days
+    continuous_history = []
+    trading_day_values = {h['date'].date(): h['value'] for h in portfolio['history']}
+    
+    last_value = initial_capital
+    for day in all_days:
+        if day.date() in trading_day_values:
+            last_value = trading_day_values[day.date()]
+        
+        continuous_history.append({
+            'date': day,
+            'value': last_value
+        })
+    
+    # Save results
+    results_df = pd.DataFrame(continuous_history)
+    results_df.to_csv('daily_rebalanced_results.csv', index=False)
     
     # Plot portfolio value and performance metrics
-    plot_portfolio_value(portfolio['history'], initial_capital)
+    plot_portfolio_value(continuous_history, initial_capital)
     
-    print("\nBenchmark simulation completed. Results saved to benchmark_results.csv")
-    print("Portfolio value visualization saved as benchmark_portfolio_value.png")
+    print("\nDaily rebalanced portfolio simulation completed. Results saved to daily_rebalanced_results.csv")
+    print("Portfolio value visualization saved as daily_rebalanced_portfolio_value.png")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Equal-Weight Benchmark Portfolio Simulation')
+    parser = argparse.ArgumentParser(description='Daily Rebalanced Equal-Weight Portfolio Simulation')
     parser.add_argument('--data_dir', type=str, required=True, help='Directory containing stock data')
     parser.add_argument('--start_date', type=str, required=True, help='Start date (YYYY-MM-DD)')
     parser.add_argument('--end_date', type=str, required=True, help='End date (YYYY-MM-DD)')

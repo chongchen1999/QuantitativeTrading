@@ -257,7 +257,6 @@ def train_model(model, train_loader, val_loader, epochs=1000, lr=0.001, early_st
         # Save best model based on validation loss
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
-            torch.save(model.state_dict(), 'best_model.pt')
             counter = 0
         else:
             counter += 1
