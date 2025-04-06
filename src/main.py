@@ -11,17 +11,57 @@ import argparse
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import seaborn as sns
+import logging
+import sys
 
-def get_latest_model_path(checkpoints_dir):
-    """Get the path of the latest model from checkpoints directory."""
+# Set up logging
+def setup_logging(log_file='trading_simulation.log'):
+    """Set up logging configuration."""
+    os.makedirs(os.path.dirname(log_file) if os.path.dirname(log_file) else '.', exist_ok=True)
+    
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+    return logging.getLogger(__name__)
+
+def get_latest_model(checkpoints_dir, current_date):
+    """
+    Get the path of the latest model from checkpoints directory that doesn't exceed the current date.
+    
+    Args:
+        checkpoints_dir (str): Directory containing model checkpoints
+        current_date (datetime): Current date of the simulation
+        
+    Returns:
+        tuple: (model_path, model_date) or (None, None) if no valid model found
+    """
     model_files = glob.glob(os.path.join(checkpoints_dir, "stock_model_last_update_*.pt"))
     if not model_files:
-        return None
+        logger.info("No existing model checkpoints found.")
+        return None, None
     
-    # Extract dates from filenames and find the latest
+    # Extract dates from filenames
     dates = [datetime.strptime(f.split('_')[-1].split('.')[0], '%Y-%m-%d') for f in model_files]
-    latest_idx = np.argmax([d.timestamp() for d in dates])
-    return model_files[latest_idx]
+    
+    # Filter models that don't exceed current date
+    valid_models = [(f, d) for f, d in zip(model_files, dates) if d <= current_date]
+    
+    if not valid_models:
+        logger.info(f"No models found with dates before or on {current_date.strftime('%Y-%m-%d')}.")
+        return None, None
+    
+    # Find the latest among valid models
+    latest_idx = np.argmax([d.timestamp() for _, d in valid_models])
+    latest_model, latest_date = valid_models[latest_idx]
+    
+    logger.info(f"Found latest valid model: {latest_model} (date: {latest_date.strftime('%Y-%m-%d')})")
+    return latest_model, latest_date
 
 def load_and_prepare_data(data_dir, start_date, end_date):
     """Load and prepare stock data."""
@@ -64,12 +104,19 @@ def get_next_trading_day(data_dir, current_date, max_look_ahead=5):
 
 def train_new_model(data_dir, train_start, train_end, model_params, device):
     """Train a new model using specified date range."""
+    logger.info(f"Training new model with data from {train_start.date()} to {train_end.date()}")
+    
     # Create datasets
     train_size = int(0.8 * (train_end - train_start).days)
     val_date = train_start + timedelta(days=train_size)
     
+    logger.info(f"Training set: {train_start.date()} to {val_date.date()}")
+    logger.info(f"Validation set: {val_date.date()} to {train_end.date()}")
+    
     train_dataset = StockDataset(data_dir, train_start, val_date, model_params['seq_len'])
     val_dataset = StockDataset(data_dir, val_date, train_end, model_params['seq_len'])
+    
+    logger.info(f"Training set size: {len(train_dataset)}, Validation set size: {len(val_dataset)}")
     
     train_loader = DataLoader(train_dataset, batch_size=model_params['batch_size'], shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=model_params['batch_size'])
@@ -83,17 +130,23 @@ def train_new_model(data_dir, train_start, train_end, model_params, device):
         dropout=model_params['dropout']
     )
     
+    logger.info(f"Model architecture: {model}")
+    logger.info(f"Starting training for {model_params['epochs']} epochs")
+    
     train_model(model, train_loader, val_loader, 
                 epochs=model_params['epochs'],
                 lr=model_params['learning_rate'],
                 device=device)
     
+    logger.info("Model training completed")
     return model
 
 def predict_returns(model, dataset, device):
     """Predict returns for all stocks."""
     if len(dataset) == 0:
-        raise ValueError("Dataset is empty. Please check data availability for the specified date range.")
+        error_msg = "Dataset is empty. Please check data availability for the specified date range."
+        logger.error(error_msg)
+        raise ValueError(error_msg)
         
     model.eval()
     with torch.no_grad():
@@ -114,7 +167,7 @@ def select_stocks(predictions, tickers, softmax_threshold, max_stocks):
     cumulative_softmax = 0
     
     for idx in sorted_indices:
-        if (predictions[idx] <= 0 or 
+        if (predictions[idx] <= -0.01 or 
             len(selected_stocks) >= max_stocks or 
             cumulative_softmax >= softmax_threshold):
             break
@@ -125,6 +178,10 @@ def select_stocks(predictions, tickers, softmax_threshold, max_stocks):
             'weight': softmax_values[idx]
         })
         cumulative_softmax += softmax_values[idx]
+    
+    logger.info(f"Selected {len(selected_stocks)} stocks with cumulative softmax weight: {cumulative_softmax:.4f}")
+    for stock in selected_stocks:
+        logger.info(f"  {stock['ticker']}: predicted return = {stock['predicted_return']:.4f}, weight = {stock['weight']:.4f}")
     
     return selected_stocks
 
@@ -166,14 +223,22 @@ def plot_portfolio_value(history, initial_capital):
     sharpe_ratio = np.sqrt(252) * df['daily_return'].mean() / df['daily_return'].std()
     max_drawdown = (df['value'] / df['value'].cummax() - 1).min() * 100
     
-    print("\nPerformance Metrics:")
-    print(f"Total Return: {total_return:.2f}%")
-    print(f"Annualized Return: {annualized_return:.2f}%")
-    print(f"Sharpe Ratio: {sharpe_ratio:.2f}")
-    print(f"Maximum Drawdown: {max_drawdown:.2f}%")
+    logger.info("\nPerformance Metrics:")
+    logger.info(f"Total Return: {total_return:.2f}%")
+    logger.info(f"Annualized Return: {annualized_return:.2f}%")
+    logger.info(f"Sharpe Ratio: {sharpe_ratio:.2f}")
+    logger.info(f"Maximum Drawdown: {max_drawdown:.2f}%")
 
 def main(args):
+    global logger
+    logger = setup_logging(os.path.join(args.checkpoints_dir, 'trading_simulation.log'))
+    
+    logger.info("Starting Stock Trading Simulation")
+    logger.info(f"Arguments: {args}")
+    
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    logger.info(f"Using device: {device}")
+    
     os.makedirs(args.checkpoints_dir, exist_ok=True)
     
     # Model parameters
@@ -188,6 +253,8 @@ def main(args):
         'learning_rate': args.learning_rate
     }
     
+    logger.info(f"Model parameters: {model_params}")
+    
     # Initialize portfolio
     portfolio = {
         'cash': args.initial_capital,
@@ -195,19 +262,22 @@ def main(args):
         'history': []
     }
     
+    logger.info(f"Initial portfolio: Cash = ${args.initial_capital:.2f}")
+    
     # Trading simulation
     current_date = pd.to_datetime(args.start_date)
     end_date = pd.to_datetime(args.end_date)
-    last_model_date = None
+    
+    logger.info(f"Simulation period: {current_date.date()} to {end_date.date()}")
     
     while current_date <= end_date:
-        print(f"\nProcessing date: {current_date.date()}")
+        logger.info(f"\nProcessing date: {current_date.date()}")
         
         # Check if this is a trading day by looking for data
         day_data = load_and_prepare_data(args.data_dir, current_date, current_date)
         
         if not day_data:
-            print(f"No trading data available for {current_date.date()}. Skipping to next day.")
+            logger.info(f"No trading data available for {current_date.date()}. Skipping to next day.")
             # Record portfolio value (unchanged since no trades)
             if portfolio['history']:
                 # Use the last known value
@@ -227,12 +297,17 @@ def main(args):
             continue
         
         # Check if we need to train a new model
-        latest_model_path = get_latest_model_path(args.checkpoints_dir)
+        latest_model_path, last_model_date = get_latest_model(args.checkpoints_dir, current_date)
+        
+        if latest_model_path is not None:
+            logger.info(f"Latest model found: {latest_model_path}")
+            logger.info(f"Model date: {last_model_date.strftime('%Y-%m-%d')}")
+
         if latest_model_path is None or (
             last_model_date is not None and 
             (current_date - last_model_date).days >= args.update_interval
         ):
-            print("Training new model...")
+            logger.info("Training new model...")
             train_start = current_date - timedelta(days=args.training_window)
             model = train_new_model(
                 args.data_dir, 
@@ -246,7 +321,7 @@ def main(args):
                 f"stock_model_last_update_{current_date.date()}.pt"
             )
             torch.save(model.state_dict(), model_path)
-            last_model_date = current_date
+            logger.info(f"Saved new model to {model_path}")
         else:
             model = StockTransformer(
                 seq_len=model_params['seq_len'],
@@ -258,7 +333,7 @@ def main(args):
             )
             model.load_state_dict(torch.load(latest_model_path, weights_only=True))
             model = model.to(device)
-            print(f"Loaded existing model from {latest_model_path}")
+            logger.info(f"Loaded existing model from {latest_model_path}")
         
         # Prepare dataset for current date
         dataset_start_date = current_date - timedelta(days=model_params['seq_len'] * 2)
@@ -270,6 +345,7 @@ def main(args):
         )
         
         # Get predictions
+        logger.info("Generating predictions for current date")
         predictions = predict_returns(model, dataset, device)
         
         # Select stocks
@@ -291,9 +367,9 @@ def main(args):
             if ticker in stock_data and not stock_data[ticker].empty:
                 sell_price = stock_data[ticker]['open'].iloc[0]
                 total_value += shares * sell_price
-                print(f"Sold {shares} shares of {ticker} at ${sell_price:.2f}")
+                logger.info(f"Sold {shares} shares of {ticker} at ${sell_price:.2f}")
             else:
-                print(f"Warning: Cannot sell {ticker} - no data available")
+                logger.warning(f"Cannot sell {ticker} - no data available")
         
         portfolio['cash'] = total_value
         portfolio['positions'] = {}
@@ -318,7 +394,7 @@ def main(args):
                         if cost <= portfolio['cash']:
                             portfolio['positions'][ticker] = shares
                             portfolio['cash'] -= cost
-                            print(f"Bought {shares} shares of {ticker} at ${stock_price:.2f}")
+                            logger.info(f"Bought {shares} shares of {ticker} at ${stock_price:.2f}")
         
         # Calculate total portfolio value for this day
         portfolio_value = portfolio['cash']
@@ -327,7 +403,7 @@ def main(args):
                 close_price = stock_data[ticker]['close'].iloc[0]
                 portfolio_value += shares * close_price
             else:
-                print(f"Warning: Cannot value {ticker} - no data available")
+                logger.warning(f"Cannot value {ticker} - no data available")
         
         # Record portfolio value
         portfolio['history'].append({
@@ -337,7 +413,7 @@ def main(args):
         
         # Find and move to next trading day
         next_date = get_next_trading_day(args.data_dir, current_date)
-        print(f"Moving to next trading day: {next_date.date()}")
+        logger.info(f"Moving to next trading day: {next_date.date()}")
         
         # Fill in portfolio values for skipped non-trading days
         temp_date = current_date + timedelta(days=1)
@@ -349,17 +425,18 @@ def main(args):
             temp_date += timedelta(days=1)
             
         current_date = next_date
-        print(f"Total portfolio value: ${total_value:.2f}")
+        logger.info(f"Total portfolio value: ${portfolio_value:.2f}")
     
     # Save final results
     results_df = pd.DataFrame(portfolio['history'])
     results_df.to_csv('trading_results.csv', index=False)
+    logger.info("Trading results saved to trading_results.csv")
     
     # Plot portfolio value and performance metrics
     plot_portfolio_value(portfolio['history'], args.initial_capital)
     
-    print("\nTrading simulation completed. Results saved to trading_results.csv")
-    print("Portfolio value visualization saved as portfolio_value.png")
+    logger.info("\nTrading simulation completed. Results saved to trading_results.csv")
+    logger.info("Portfolio value visualization saved as portfolio_value.png")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Stock Trading Simulation')
