@@ -3,3 +3,5 @@ ref/
 __pycache__
 backups/
 checkpoints/
+pair_trading/
+frontier-seeker/
