@@ -148,11 +148,3 @@ To compare the transformer model against benchmarks:
    - Stock universe
 
 2. Compare the generated performance metrics and visualizations
-
-## License
-
-[Add your license information here]
-
-## Acknowledgments
-
-[Add any acknowledgments here]
